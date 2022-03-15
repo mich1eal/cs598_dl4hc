@@ -54,11 +54,11 @@
 % For specific grading rubrics, please see the project instruction.
 
 \section{Introduction}
-A  few  sentences  placing  the  work  in  context. Limit it to a few paragraphs at most; your report is on reproducing a piece of work, you don’t have to motivate that work. However, it should be clear enough what the original paper is about and what the contribution of it is.
 
 
-\section{Paper 1}
+\section{Topic 1: Symptom Similarity Analysis}
 \subsection{General Problem}
+\cite{zhang_2019}
 What is the general problem this work is trying to do? We are not asking for the specific approach, that’s requested below. An example of a general problem is ‘mortality prediction.’ An example of a specific approach is ‘using recurrent neural network and attention mechanism.’ Do not copy the description in the paper – use your own rewording.
 
 \subsection{Specific Approach}
@@ -79,92 +79,51 @@ Discuss the computational feasibility of your proposed work – make an argument
 \subsection{Code Reuse}
 State whether you will re-use existing code (and provide a link to that code base) or whether you will implement yourself.
 
-\section{Scope of reproducibility}
+\section{Paper 2: Representation Learning}
+\subsection{General Problem}
+\cite{sohn_2020}
+What is the general problem this work is trying to do? We are not asking for the specific approach, that’s requested below. An example of a general problem is ‘mortality prediction.’ An example of a specific approach is ‘using recurrent neural network and attention mechanism.’ Do not copy the description in the paper – use your own rewording.
 
-Explain the claims from the paper you picked for the reproduction study and briefly motivate your choice. We recommend picking the claim that is the central contribution of the paper. To find what this contribution is, try to summarize the most important result of the paper in 1-2 sentences, e.g. ``This paper introduces a new activation function X that outperforms a similar activation function Y on tasks Z,V,W.'' 
+\subsection{Specific Approach}
+What is the new specific approach being taken in this work, and what is interesting or innovative about it, in your opinion?
 
-Make the scope as specific as possible. It should be something that can be supported or rejected by your data. For example, consider this scope: 
+\subsection{Specific Hypotheses to Verify}
+What are the specific hypotheses from the paper that you plan to verify in your reproduction study?
 
-\textit{``Contextual embedding models have shown strong performance on a number of tasks across NLP. We will run experiments evaluating two types of contextual embedding models on datasets X, Y, and Z.''}
+\subsection{Additional Ablations}
+What are the additional ablations you plan to do, and why are they interesting?
 
+\subsection{Data Access}
+State how you are assured that you have access to the appropriate data.
 
-That scope is too broad and lacks precise outcome (what is ``strong performance?''). Now consider this scope:
+\subsection{Computational Feasibility}
+Discuss the computational feasibility of your proposed work – make an argument that the reproduction will be feasible.
 
-\textit{``Finetuning pretrained BERT on SST-2 will have higher accuracy than an LSTM trained with GloVe embeddings.''}
+\subsection{Code Reuse}
+State whether you will re-use existing code (and provide a link to that code base) or whether you will implement yourself.
 
-This scope is better because it's more specific and has an outcome that can be either supported or rejected based on your work: 
-\subsection{Addressed claims from the original paper}
+\section{Paper 3: NLP for Cognitive Therapy}
+\subsection{General Problem}
+\cite{burger_2021}
+What is the general problem this work is trying to do? We are not asking for the specific approach, that’s requested below. An example of a general problem is ‘mortality prediction.’ An example of a specific approach is ‘using recurrent neural network and attention mechanism.’ Do not copy the description in the paper – use your own rewording.
 
-Clearly itemize the claims you are testing:
-\begin{itemize}
-    \item Claim 1
-    \item Claim 2
-    \item Claim 3
-\end{itemize}
+\subsection{Specific Approach}
+What is the new specific approach being taken in this work, and what is interesting or innovative about it, in your opinion?
 
+\subsection{Specific Hypotheses to Verify}
+What are the specific hypotheses from the paper that you plan to verify in your reproduction study?
 
-\section{Methodology}
+\subsection{Additional Ablations}
+What are the additional ablations you plan to do, and why are they interesting?
 
-In this section you explain your approach -- did you use the author's code, did you aim to re-implement the approach from the paper description? Summarize the resources (code, documentation, GPUs) that you used. 
+\subsection{Data Access}
+State how you are assured that you have access to the appropriate data.
 
-\subsection{Model descriptions}
-Describe the models used in the original paper, including the architecture, learning objective and the number of parameters.
+\subsection{Computational Feasibility}
+Discuss the computational feasibility of your proposed work – make an argument that the reproduction will be feasible.
 
-\subsection{Data descriptions}
-Describe the datasets you used and how you obtained them. 
-
-\subsection{Hyperparameters}
-Describe how you set the hyperparameters and what the source was for their value (e.g. paper, code or your guess). 
-
-\subsection{Implementation}
-Describe whether you use the existing code or write your own code, with the link to the code. Note that the github repo you link to should be public and have a clear documentation.
-
-\subsection{Computational requirements}
-Provide information on computational requirements for each of your experiments. For example, the number of CPU/GPU hours and memory requirements.
-Mention both your estimation made before running the experiments (i.e. in the proposal) and the actual resources you used to reproducing the experiments. 
-\textbf{\textit{You'll need to think about this ahead of time, and write your code in a way that captures this information so you can later add it to this section.} }
-
-\section{Results}
-Start with a high-level overview of your results. Does your work support the claims you listed in section 2.1? Keep this section as factual and precise as possible, reserve your judgement and discussion points for the next ``Discussion'' section. 
-
-Go into each individual result you have, say how it relates to one of the claims, and explain what your result is. Logically group related results into sections. Clearly state if you have gone beyond the original paper to run additional experiments and how they relate to the original claims. 
-
-Tips 1: Be specific and use precise language, e.g. ``we reproduced the accuracy to within 1\% of reported value, that upholds the paper's conclusion that it performs much better than baselines.'' Getting exactly the same number is in most cases infeasible, so you'll need to use your judgement call to decide if your results support the original claim of the paper. 
-
-Tips 2: You may want to use tables and figures to demonstrate your results.
-
-% The number of subsections for results should be the same as the number of hypotheses you are trying to verify.
-
-\subsection{Result 1}
-
-\subsection{Result 2}
-
-\subsection{Additional results not present in the original paper}
-
-Describe any additional experiments beyond the original paper. This could include experimenting with additional datasets, exploring different methods, running more ablations, or tuning the hyperparameters. For each additional experiment, clearly describe which experiment you conducted, its result, and discussions (e.g. what is the indication of the result).
-
-\section{Discussion}
-
-Describe larger implications of the experimental results, whether the original paper was reproducible, and if it wasn’t, what factors made it irreproducible. 
-
-Give your judgement on if you feel the evidence you got from running the code supports the claims of the paper. Discuss the strengths and weaknesses of your approach -- perhaps you didn't have time to run all the experiments, or perhaps you did additional experiments that further strengthened the claims in the paper.
-
-\subsection{What was easy}
-Describe which parts of your reproduction study were easy. E.g. was it easy to run the author's code, or easy to re-implement their method based on the description in the paper. The goal of this section is to summarize to the reader which parts of the original paper they could easily apply to their problem. 
-
-Tips: Be careful not to give sweeping generalizations. Something that is easy for you might be difficult to others. Put what was easy in context and explain why it was easy (e.g. code had extensive API documentation and a lot of examples that matched experiments in papers). 
-
-\subsection{What was difficult}
-Describe which parts of your reproduction study were difficult or took much more time than you expected. Perhaps the data was not available and you couldn't verify some experiments, or the author's code was broken and had to be debugged first. Or, perhaps some experiments just take too much time/resources to run and you couldn't verify them. The purpose of this section is to indicate to the reader which parts of the original paper are either difficult to re-use, or require a significant amount of work and resources to verify. 
-
-Tips: Be careful to put your discussion in context. For example, don't say ``the math was difficult to follow,'' say ``the math requires advanced knowledge of calculus to follow.'' 
-
-\subsection{Recommendations for reproducibility}
-
-Describe a set of recommendations to the original authors or others who work in this area for improving reproducibility.
-
-\section{Communication with original authors}
-Document the extent of (or lack of) communication with the original authors. To make sure the reproducibility report is a fair assessment of the original research we recommend getting in touch with the original authors. You can ask authors specific questions, or if you don't have any questions you can send them the full report to get their feedback.
+\subsection{Code Reuse}
+State whether you will re-use existing code (and provide a link to that code base) or whether you will implement yourself.
 
 
 \bibliographystyle{acl_natbib}
