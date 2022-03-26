@@ -57,10 +57,12 @@
 
 \section{Paper ID 41: Symptom Similarity Analysis}
 \subsection{General Problem}
-The first paper we propose reproducing is ``\usebibentry{zhang_2019}{title}'' by \citeauthor*{zhang_2019}. The primary goal of this paper is to rate the similarity of pairs of sentences. The idea is to aid prediction of disease by automatically identifying similarities in descriptions of patient symptoms. However, the paper does not use healthcare-related text.
+The first paper we propose reproducing is ``\usebibentry{zhang_2019}{title}'' by \citeauthor*{zhang_2019}.
+
+The primary goal of this paper is to rate the similarity of pairs of sentences. The idea is to aid prediction of disease by automatically identifying similarities in descriptions of patient symptoms. However, the paper does not use healthcare-related text.
 
 \subsection{Specific Novel Approach}
-\citet{zhang_2019} preprocess each sentence by extracting its ``trunk'' -- the subject, predicate and object. Sentence similarity may be identified more reliably by using these trunks.
+\citet{zhang_2019} preprocess each sentence by extracting its ``trunk'' -- the subject, predicate and object. The researchers found that these trunks help identify sentence similarity more reliably.
 
 \subsection{Specific Hypotheses to Verify}
 We propose reproducing experiment 1. This creates and tests a classifier using a dataset of human-labeled sentence similarities. Experiment 1 compares the authors' method to a baseline plus the methods in four related papers.
@@ -69,6 +71,8 @@ We propose reproducing experiment 1. This creates and tests a classifier using a
 Possible Ablations:
 \begin{itemize}
   \item Incorporate synonyms, antonyms, and other word relationships into the model to gauge how this affects ratings of sentence similarities. The paper doesn't use healthcare data, so normal English synonyms could be a proxy for gauging whether the model's performance on healthcare data would improve by incorporating medical ontologies. One potential source of synonyms is the \href{https://www.kaggle.com/datasets/duketemon/wordnet-synonyms}{WordNet synonyms dataset} on Kaggle.
+  \item Add an attention mechanism to learn which portions of sentences contribute most to similarity scores.
+  \item Reduce the size of the training set to learn how sensitive the outcome is to the training corpus size.
 \end{itemize}
 
 \subsection{Data Access}
@@ -82,23 +86,36 @@ To date, the authors have not responded to our request for code. We plan to impl
 
 If useful, we may take advantage of Python modules such as \href{https://spacy.io/}{Spacy} or the \href{https://www.nltk.org/}{Natural Language Tool Kit for word tokenization and dependency parsing. Additional modules such as \href{https://pytorch.org/}{PyTorch} and \href{https://scikit-learn.org/stable/}{scikit-learn} may be used for data loading, model construction, and model evaluation. 
 
-\section{Paper ID 68: Multilevel Representation Learning}
+\section{Paper ID 68: MuLan: Multilevel Language-Based Representation Learning}
 \subsection{General Problem}
-Our second paper is ``\usebibentry{sohn_2020}{title}'' by \citeauthor*{sohn_2020}. This paper seeks to... 
-
-What is the general problem this work is trying to do? We are not asking for the specific approach, that’s requested below. An example of a general problem is ‘mortality prediction.’ An example of a specific approach is ‘using recurrent neural network and attention mechanism.’ Do not copy the description in the paper – use your own rewording.
+Our second paper is ``\usebibentry{sohn_2020}{title}'' by \citeauthor*{sohn_2020}. This paper seeks to:
+\begin{itemize}
+  \item Summarize EHRs as a chronology of medical events
+  \item Interpret and visualize disease progression
+  \item Provide early detection of dangerous conditions such as septic shock
+\end{itemize}
 
 \subsection{Specific Approach}
-What is the new specific approach being taken in this work, and what is interesting or innovative about it, in your opinion?
+Unlike with Med2Vec, the authors model EHR hierarchies by using supervised learning for the final stage. This learns the relationship between patient visits and medical events in terms of a target condition such as septic shock.
+
+Before the final stage, the authors model medical events as a sequence of states and state changes, such as blood pressure changing from low to high. They then use these state representations to identify relationships between events. This makes a difference for identifying septic shock, which has no single biological marker.
 
 \subsection{Specific Hypotheses to Verify}
-What are the specific hypotheses from the paper that you plan to verify in your reproduction study?
+We would verify the prediction of septic shock with a 40-hour hold-off window. We would compare four variations of MuLan with two baseline models: one based on Med2Vec and one based on (relatively) raw EHR features.
 
 \subsection{Additional Ablations}
-What are the additional ablations you plan to do, and why are they interesting?
+Possible Ablations:
+\begin{itemize}
+  \item Before training the models, we would remove medical events that may represent target leakage, such as administration of vasopressors.
+  \item We could vary the size of the training dataset to learn the model's sensitivity to the amount of data available.
+\end{itemize}
 
 \subsection{Data Access}
-This paper uses data from the Christiana Care Health System (CCHS). This data is not publicly available. The authors of this paper were contacted to determine if the data can be retrieved. At the time of writing, no response has been received from the authors. 
+This paper uses data from the Christiana Care Health System (CCHS). This data is not publicly available. The authors of this paper were contacted to determine if the data can be retrieved. At the time of writing, no response has been received from the authors.
+
+We'd substitute MIMIC-III data for the original dataset. We'd attempt to select a study population using the same criteria as the researchers.
+
+The authors used experts to label the original dataset. We'd attempt to label the presence of septic shock using the criteria listed in the paper.
 
 \subsection{Computational Feasibility}
 
@@ -107,7 +124,7 @@ This paper uses data from the Christiana Care Health System (CCHS). This data is
 Computational power requirements will be reassessed if/when the dataset becomes available. 
 
 \subsection{Code Reuse}
-State whether you will re-use existing code (and provide a link to that code base) or whether you will implement yourself.
+Without an author response, we would write our own code.
 
 \section{Paper ID 117: NLP for Cognitive Therapy}
 \subsection{General Problem}
