@@ -86,7 +86,9 @@ We can use the Python module \href{https://spacy.io/}{Spacy} or the \href{https:
 
 \section{Paper ID 68: Multilevel Representation Learning}
 \subsection{General Problem}
-\cite{sohn_2020}
+Our second paper is ``\usebibentry{sohn_2020}{title}'' by \citeauthor*{sohn_2020}. This paper seeks to... 
+
+
 What is the general problem this work is trying to do? We are not asking for the specific approach, that’s requested below. An example of a general problem is ‘mortality prediction.’ An example of a specific approach is ‘using recurrent neural network and attention mechanism.’ Do not copy the description in the paper – use your own rewording.
 
 \subsection{Specific Approach}
@@ -109,28 +111,29 @@ State whether you will re-use existing code (and provide a link to that code bas
 
 \section{Paper ID 117: NLP for Cognitive Therapy}
 \subsection{General Problem}
-\cite{burger_2021}
-What is the general problem this work is trying to do? We are not asking for the specific approach, that’s requested below. An example of a general problem is ‘mortality prediction.’ An example of a specific approach is ‘using recurrent neural network and attention mechanism.’ Do not copy the description in the paper – use your own rewording.
+Our final paper is ``\usebibentry{burger_2021}{title}'' by \citeauthor*{burger_2021}. This paper seeks to classify a human subject's \emph{maladaptive schema} based on their unstructured text input. 
 
-\subsection{Specific Approach}
-What is the new specific approach being taken in this work, and what is interesting or innovative about it, in your opinion?
+\subsection{Specific Novel Approach}
+The task attempted by \cite{burger_2021} is particularly challenging. Inputs are unstructured natural language utterances from a variety of authors. In addition to the usual challenges of natural language, the classification target (psychological mental state) is highly subjective and likely varies person to person. This task is challenging for humans, requiring trained professionals who often do not reach consensus. Due to these obstacles, this task will likely be more challenging than typical natural language processing applications. 
 
 \subsection{Specific Hypotheses to Verify}
-What are the specific hypotheses from the paper that you plan to verify in your reproduction study?
+We will attempt to verify the paper's hypothesis H1. This hypothesis asserts that mental health schema can be predicted given an unstructured utterance. 
 
 \subsection{Additional Ablations}
-What are the additional ablations you plan to do, and why are they interesting?
+Possible Ablations:
+\begin{itemize}
+  \item easy one - use a state of the art model like BERT, see if we can beat their scores 
+  \item I wonder if there's anything else we can do with the hierarchical nature of their data. Maybe when you compile more than one utterance together you get better results?
+\end{itemize}
 
 \subsection{Data Access}
-State how you are assured that you have access to the appropriate data.
+All data used in this paper is publicly available on the \href{https://data.4tu.nl/info/en/about-4turesearchdata/organisation}{4TU.ResearchData} repository. It has been successfully retrieved. 
 
 \subsection{Computational Feasibility}
-Discuss the computational feasibility of your proposed work – make an argument that the reproduction will be feasible.
+This study relies on a relatively small dataset (5747 utterances). The models used are not especially complicated. No computational power challenges are anticipated. 
 
 \subsection{Code Reuse}
-State whether you will re-use existing code (and provide a link to that code base) or whether you will implement yourself.
-
-
+The code from this study is available on \href{https://data.4tu.nl/info/en/about-4turesearchdata/organisation}{4TU.ResearchData}. The code will be reviewed, however new code will be written for this project. Publicly available machine learning modules will be used when practical. 
 \bibliographystyle{acl_natbib}
 \bibliography{acl2021}
 
