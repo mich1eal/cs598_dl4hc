@@ -81,6 +81,8 @@ The training and testing datasets are public: the \href{https://www.microsoft.co
 \subsection{Computational Feasibility}
 The training dataset is small: 4,076 pairs of sentences. The authors use the \href{https://nlp.stanford.edu/software/lex-parser.shtml}{Stanford Parser} to extract sentence trunks, and this parser is publicly available. Finally, the authors' model uses only a small CNN, with one convolution layer and one pooling layer. We do not anticipate challenges in terms of computation power. 
 
+The authors evaluate their novel model plus a number of models defined in other papers. Evaluating this large number of models may be computationally expensive. To avoid this issue, only the paper's model and a baseline model may be evaluated.  
+
 \subsection{Code Reuse}
 To date, the authors have not responded to our request for code. We plan to implement these methods ourselves. 
 
@@ -115,9 +117,9 @@ This paper uses data from the Christiana Care Health System (CCHS). This data is
 
 Without access to the authors' dataset, it may be infeasible to recreate this paper's results. If we desired to proceed, we could take the following course of action: 
 \begin{enumerate}
-  \item substitute MIMIC-III data for the original dataset
-  \item select a study population using the same criteria as the researchers
-  \item label the presence of septic shock using the criteria listed in the paper
+  \item Substitute MIMIC-III data for the original dataset
+  \item Select a study population using the same criteria as the researchers
+  \item Label the presence of septic shock using the criteria listed in the paper
 \end{enumerate}
 
 \subsection{Computational Feasibility}
