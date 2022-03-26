@@ -84,7 +84,7 @@ The training dataset is small: 4,076 pairs of sentences. The authors use the \hr
 \subsection{Code Reuse}
 To date, the authors have not responded to our request for code. We plan to implement these methods ourselves. 
 
-If useful, we may take advantage of Python modules such as \href{https://spacy.io/}{Spacy} or the \href{https://www.nltk.org/}{Natural Language Tool Kit for word tokenization and dependency parsing. Additional modules such as \href{https://pytorch.org/}{PyTorch} and \href{https://scikit-learn.org/stable/}{scikit-learn} may be used for data loading, model construction, and model evaluation. 
+If useful, we may take advantage of Python modules such as \href{https://spacy.io/}{Spacy} or the \href{https://www.nltk.org/}{Natural Language Tool Kit} for word tokenization and dependency parsing. Additional modules such as \href{https://pytorch.org/}{PyTorch} and \href{https://scikit-learn.org/stable/}{scikit-learn} may be used for data loading, model construction, and model evaluation. 
 
 \section{Paper ID 68: MuLan: Multilevel Language-Based Representation Learning}
 \subsection{General Problem}
@@ -95,7 +95,7 @@ Our second paper is ``\usebibentry{sohn_2020}{title}'' by \citeauthor*{sohn_2020
   \item Provide early detection of dangerous conditions such as septic shock
 \end{itemize}
 
-\subsection{Specific Approach}
+\subsection{Specific Novel Approach}
 Unlike with Med2Vec, the authors model EHR hierarchies by using supervised learning for the final stage. This learns the relationship between patient visits and medical events in terms of a target condition such as septic shock.
 
 Before the final stage, the authors model medical events as a sequence of states and state changes, such as blood pressure changing from low to high. They then use these state representations to identify relationships between events. This makes a difference for identifying septic shock, which has no single biological marker.
@@ -124,7 +124,7 @@ The authors used experts to label the original dataset. We'd attempt to label th
 Computational power requirements will be reassessed if/when the dataset becomes available. 
 
 \subsection{Code Reuse}
-Without an author response, we would write our own code.
+Without an author response, we would write our own code. Modules such as \href{https://pytorch.org/}{PyTorch} and \href{https://scikit-learn.org/stable/}{scikit-learn} may be used for data loading, model construction, and model evaluation. 
 
 \section{Paper ID 117: NLP for Cognitive Therapy}
 \subsection{General Problem}
