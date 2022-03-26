@@ -60,7 +60,7 @@
 The first paper we propose reproducing is ``\usebibentry{zhang_2019}{title}'' by \citeauthor*{zhang_2019}. The primary goal of this paper is to rate the similarity of pairs of sentences. The idea is to aid prediction of disease by automatically identifying similarities in descriptions of patient symptoms. However, the paper does not use healthcare-related text.
 
 \subsection{Specific Novel Approach}
-The authors preprocess each sentence by extracting its ``trunk'' -- the subject, predicate and object. Sentence similarity may identified more reliably by using these trunks.
+\citet{burger_2021} preprocess each sentence by extracting its ``trunk'' -- the subject, predicate and object. Sentence similarity may identified more reliably by using these trunks.
 
 \subsection{Specific Hypotheses to Verify}
 We propose reproducing experiment 1. This creates and tests a classifier using a dataset of human-labeled sentence similarities. Experiment 1 compares the authors' method to a baseline plus the methods in four related papers.
@@ -101,10 +101,18 @@ What are the specific hypotheses from the paper that you plan to verify in your 
 What are the additional ablations you plan to do, and why are they interesting?
 
 \subsection{Data Access}
-State how you are assured that you have access to the appropriate data.
+This paper uses data from the Christiana Care Health System (CCHS). This data is not publicly available. The authors of this paper were contacted to determine if the data can be retrieved. At the time of writing, no response has been received from the authors. 
 
 \subsection{Computational Feasibility}
-Discuss the computational feasibility of your proposed work – make an argument that the reproduction will be feasible.
+
+From the study population,
+we randomly sampled 10,000 visits with 927,131 events
+
+As a result, the final dataset contains 5,928
+visits with 795,314 events
+
+CNN and LSTM
+
 
 \subsection{Code Reuse}
 State whether you will re-use existing code (and provide a link to that code base) or whether you will implement yourself.
@@ -114,7 +122,7 @@ State whether you will re-use existing code (and provide a link to that code bas
 Our final paper is ``\usebibentry{burger_2021}{title}'' by \citeauthor*{burger_2021}. This paper seeks to classify a human subject's \emph{maladaptive schema} based on their unstructured text input. 
 
 \subsection{Specific Novel Approach}
-The task attempted by \cite{burger_2021} is particularly challenging. Inputs are unstructured natural language utterances from a variety of authors. In addition to the usual challenges of natural language, the classification target (psychological mental state) is highly subjective and likely varies person to person. This task is challenging for humans, requiring trained professionals who often do not reach consensus. Due to these obstacles, this task will likely be more challenging than typical natural language processing applications. 
+The task attempted by \citet{burger_2021} is particularly challenging. Inputs are unstructured natural language utterances from a variety of authors. In addition to the usual challenges of natural language, the classification target (psychological mental state) is highly subjective and likely varies person to person. This task is challenging for humans, requiring trained professionals who often do not reach consensus. Due to these obstacles, this task will likely be more challenging than typical natural language processing applications. 
 
 \subsection{Specific Hypotheses to Verify}
 We will attempt to verify the paper's hypothesis H1. This hypothesis asserts that mental health schema can be predicted given an unstructured utterance. 
