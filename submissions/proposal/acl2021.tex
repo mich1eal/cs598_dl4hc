@@ -55,13 +55,24 @@
 
 \section{Paper ID 41: Symptom Similarity Analysis}
 \subsection{General Problem}
-The first paper we propose reproducing is \citetitle{zhang_2019} by \citeauthor*{zhang_2019}. The primary goal of this paper is to rate the similarity of pairs of sentences. The idea is to aid prediction of disease by automatically identifying similarities in descriptions of patient symptoms. However, the paper does not use healthcare-related text.
+The first paper we propose reproducing is \citet{zhang_2019} by \citeauthor*{zhang_2019}. The primary goal of this paper is to rate the similarity of pairs of sentences. The idea is to aid prediction of disease by automatically identifying similarities in descriptions of patient symptoms. However, the paper does not use healthcare-related text.
+
+\citet{zhang_2019} 
+
+\citetitle{zhang_2019} 
+
+\citeTitle{zhang_2019} 
+
+\citefield{zhang_2019}{title}
+
+\citefield{zhang_2019}{author}
+
 
 \subsection{Specific Novel Approach}
-The authors preprocess each sentence by extracting its "trunk" -- the subject, predicate and object. Sentence similarity may identified more reliably by using these trunks.
+The authors preprocess each sentence by extracting its ``trunk'' -- the subject, predicate and object. Sentence similarity may identified more reliably by using these trunks.
 
 \subsection{Specific Hypotheses to Verify}
-We would reproduce experiment 1. This creates and tests a classifier using a dataset of human-labeled sentence similarities. Experiment 1 compares the authors' method to a baseline plus the methods in four related papers.
+We propose reproducing experiment 1. This creates and tests a classifier using a dataset of human-labeled sentence similarities. Experiment 1 compares the authors' method to a baseline plus the methods in four related papers.
 
 \subsection{Additional Ablations}
 Possible Ablations:
