@@ -78,14 +78,13 @@ The training and testing datasets are public: the \href{https://www.microsoft.co
 The training dataset is small: 4,076 pairs of sentences. The authors use the \href{https://nlp.stanford.edu/software/lex-parser.shtml}{Stanford Parser} to extract sentence trunks, and this parser is publicly available. Finally, the authors' model uses only a small CNN, with one convolution layer and one pooling layer. We do not anticipate challenges in terms of computation power. 
 
 \subsection{Code Reuse}
-To date, the authors have not responded to our request for code. We would implement these methods ourselves. 
+To date, the authors have not responded to our request for code. We plan to implement these methods ourselves. 
 
-We can use the Python module \href{https://spacy.io/}{Spacy} or the \href{https://www.nltk.org/}{Natural Language Tool Kit} as tools for word tokenization and dependency parsing. 
+If useful, we may take advantage of Python modules such as \href{https://spacy.io/}{Spacy} or the \href{https://www.nltk.org/}{Natural Language Tool Kit for word tokenization and dependency parsing. Additional modules such as \href{https://pytorch.org/}{PyTorch} and \href{https://scikit-learn.org/stable/}{scikit-learn} may be used for data loading, model construction, and model evaluation. 
 
 \section{Paper ID 68: Multilevel Representation Learning}
 \subsection{General Problem}
 Our second paper is ``\usebibentry{sohn_2020}{title}'' by \citeauthor*{sohn_2020}. This paper seeks to... 
-
 
 What is the general problem this work is trying to do? We are not asking for the specific approach, that’s requested below. An example of a general problem is ‘mortality prediction.’ An example of a specific approach is ‘using recurrent neural network and attention mechanism.’ Do not copy the description in the paper – use your own rewording.
 
@@ -103,13 +102,9 @@ This paper uses data from the Christiana Care Health System (CCHS). This data is
 
 \subsection{Computational Feasibility}
 
-From the study population,
-we randomly sampled 10,000 visits with 927,131 events
+\citeauthor{zhang_2019}'s \citeyearpar{zhang_2019} dataset is relatively large. The final set contains 5,928 visits with 795,314 events. Input vectors are feature-rich, with 10+ elements per timestep. Models are trained in multiple steps including pretraining. The models themselves are relatively complicated with numerous layers and channels. These factors suggest that computation power will need to be considered when determining whether or not to proceed with reproducing this paper's results. 
 
-As a result, the final dataset contains 5,928
-visits with 795,314 events
-
-CNN and LSTM
+Computational power requirements will be reassessed if/when the dataset becomes available. 
 
 \subsection{Code Reuse}
 State whether you will re-use existing code (and provide a link to that code base) or whether you will implement yourself.
@@ -138,7 +133,9 @@ All data used in this paper is publicly available on the \href{https://data.4tu.
 This study relies on a relatively small dataset (5747 utterances). The models used are not especially complicated. No computational power challenges are anticipated. 
 
 \subsection{Code Reuse}
-The code from this study is available on \href{https://data.4tu.nl/info/en/about-4turesearchdata/organisation}{4TU.ResearchData}. The code will be reviewed, however new code will be written for this project. Publicly available machine learning modules will be used when practical. 
+The code from this study is available on \href{https://data.4tu.nl/info/en/about-4turesearchdata/organisation}{4TU.ResearchData}. The code will be reviewed, however new code will be written for this project. 
+
+If useful, we may take advantage of Python modules such as \href{https://spacy.io/}{Spacy} or the \href{https://www.nltk.org/}{Natural Language Tool Kit for word tokenization and dependency parsing. Additional modules such as \href{https://pytorch.org/}{PyTorch} and \href{https://scikit-learn.org/stable/}{scikit-learn} may be used for data loading, model construction, and model evaluation. 
 \bibliographystyle{acl_natbib}
 \bibliography{acl2021}
 
