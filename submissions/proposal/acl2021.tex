@@ -60,7 +60,7 @@
 The first paper we propose reproducing is ``\usebibentry{zhang_2019}{title}'' by \citeauthor*{zhang_2019}. The primary goal of this paper is to rate the similarity of pairs of sentences. The idea is to aid prediction of disease by automatically identifying similarities in descriptions of patient symptoms. However, the paper does not use healthcare-related text.
 
 \subsection{Specific Novel Approach}
-\citet{burger_2021} preprocess each sentence by extracting its ``trunk'' -- the subject, predicate and object. Sentence similarity may identified more reliably by using these trunks.
+\citet{zhang_2019} preprocess each sentence by extracting its ``trunk'' -- the subject, predicate and object. Sentence similarity may be identified more reliably by using these trunks.
 
 \subsection{Specific Hypotheses to Verify}
 We propose reproducing experiment 1. This creates and tests a classifier using a dataset of human-labeled sentence similarities. Experiment 1 compares the authors' method to a baseline plus the methods in four related papers.
@@ -78,8 +78,6 @@ The training and testing datasets are public: the \href{https://www.microsoft.co
 The training dataset is small: 4,076 pairs of sentences. The authors use the \href{https://nlp.stanford.edu/software/lex-parser.shtml}{Stanford Parser} to extract sentence trunks, and this parser is publicly available. Finally, the authors' model uses only a small CNN, with one convolution layer and one pooling layer. We do not anticipate challenges in terms of computation power. 
 
 \subsection{Code Reuse}
-State whether you will re-use existing code (and provide a link to that code base) or whether you will implement yourself.
-
 To date, the authors have not responded to our request for code. We would implement these methods ourselves. 
 
 We can use the Python module \href{https://spacy.io/}{Spacy} or the \href{https://www.nltk.org/}{Natural Language Tool Kit} as tools for word tokenization and dependency parsing. 
@@ -112,7 +110,6 @@ As a result, the final dataset contains 5,928
 visits with 795,314 events
 
 CNN and LSTM
-
 
 \subsection{Code Reuse}
 State whether you will re-use existing code (and provide a link to that code base) or whether you will implement yourself.
