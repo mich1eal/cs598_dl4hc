@@ -68,7 +68,7 @@ The primary goal of this paper is to rate the similarity of pairs of sentences. 
 We propose reproducing experiment 1. This creates and tests a classifier using a dataset of human-labeled sentence similarities. Experiment 1 compares the authors' method to a baseline plus the methods in four related papers.
 
 \subsection{Additional Ablations}
-Possible Ablations:
+For the project, we are considering performing one/several of the following ablations: 
 \begin{itemize}
   \item Incorporate synonyms, antonyms, and other word relationships into the model to gauge how this affects ratings of sentence similarities. The paper doesn't use healthcare data, so normal English synonyms could be a proxy for gauging whether the model's performance on healthcare data would improve by incorporating medical ontologies. One potential source of synonyms is the \href{https://www.kaggle.com/datasets/duketemon/wordnet-synonyms}{WordNet synonyms dataset} on Kaggle.
   \item Add an attention mechanism to learn which portions of sentences contribute most to similarity scores.
@@ -104,7 +104,7 @@ Before the final stage, the authors model medical events as a sequence of states
 We would verify the prediction of septic shock with a 40-hour hold-off window. We would compare four variations of MuLan with two baseline models: one based on Med2Vec and one based on (relatively) raw EHR features.
 
 \subsection{Additional Ablations}
-Possible Ablations:
+For the project, we are considering performing one/several of the following ablations: 
 \begin{itemize}
   \item Before training the models, we would remove medical events that may represent target leakage, such as administration of vasopressors.
   \item We could vary the size of the training dataset to learn the model's sensitivity to the amount of data available.
@@ -113,9 +113,12 @@ Possible Ablations:
 \subsection{Data Access}
 This paper uses data from the Christiana Care Health System (CCHS). This data is not publicly available. The authors of this paper were contacted to determine if the data can be retrieved. At the time of writing, no response has been received from the authors.
 
-We'd substitute MIMIC-III data for the original dataset. We'd attempt to select a study population using the same criteria as the researchers.
-
-The authors used experts to label the original dataset. We'd attempt to label the presence of septic shock using the criteria listed in the paper.
+Without access to the authors' dataset, it may be infeasible to recreate this paper's results. If we desired to proceed, we could take the following course of action: 
+\begin{enumerate}
+  \item substitute MIMIC-III data for the original dataset
+  \item select a study population using the same criteria as the researchers
+  \item label the presence of septic shock using the criteria listed in the paper
+\end{enumerate}
 
 \subsection{Computational Feasibility}
 
@@ -137,18 +140,18 @@ The task attempted by \citet{burger_2021} is particularly challenging. Inputs ar
 We will attempt to verify the paper's hypothesis H1. This hypothesis asserts that mental health schema can be predicted given an unstructured utterance. 
 
 \subsection{Additional Ablations}
-Possible Ablations:
+For the project, we are considering performing one/several of the following ablations: 
 \begin{itemize}
-  \item easy one - use a state of the art model like BERT, see if we can beat their scores 
-  \item I wonder if there's anything else we can do with the hierarchical nature of their data. Maybe when you compile more than one utterance together you get better results?
-  \ item Add attention mechanism to identify what parts of utterances predict their schemas best
+  \item Use a state of the art model like BERT and compare results to the original paper
+  \item Use a hierarchical model to take advantage structure in downward arrow data
+  \item Add attention mechanism to identify what parts of utterances predict their schemas best
 \end{itemize}
 
 \subsection{Data Access}
 All data used in this paper is publicly available on the \href{https://data.4tu.nl/info/en/about-4turesearchdata/organisation}{4TU.ResearchData} repository. It has been successfully retrieved. 
 
 \subsection{Computational Feasibility}
-This study relies on a relatively small dataset (5747 utterances). The models used are not especially complicated. No computational power challenges are anticipated. 
+This study relies on a relatively small dataset (5747 utterances). The models used are not especially complicated. \citet{burger_2021} performed a grid search which took on the order of 40 hours to complete. If computational time becomes prohibitive, we plan to reduce the scope our grid while still confirming key results. 
 
 \subsection{Code Reuse}
 The code from this study is available on \href{https://data.4tu.nl/info/en/about-4turesearchdata/organisation}{4TU.ResearchData}. The code will be reviewed, however new code will be written for this project. 
