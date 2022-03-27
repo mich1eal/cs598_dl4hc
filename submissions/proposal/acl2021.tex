@@ -73,6 +73,8 @@ For the project, we are considering performing one/several of the following abla
   \item Incorporate synonyms, antonyms, and other word relationships into the model to gauge how this affects ratings of sentence similarities. The paper doesn't use healthcare data, so normal English synonyms could be a proxy for gauging whether the model's performance on healthcare data would improve by incorporating medical ontologies. One potential source of synonyms is the \href{https://www.kaggle.com/datasets/duketemon/wordnet-synonyms}{WordNet synonyms dataset} on Kaggle.
   \item Add an attention mechanism to learn which portions of sentences contribute most to similarity scores.
   \item Reduce the size of the training set to learn how sensitive the outcome is to the training corpus size.
+  \item Use a dependency parser instead of a constituency parser (no change expected for sub-verb-obj).
+  \item Incorporate additional sentence parts of the sentence into the model (e.g. one modifier each for sub-verb-obj).
 \end{itemize}
 
 \subsection{Data Access}
