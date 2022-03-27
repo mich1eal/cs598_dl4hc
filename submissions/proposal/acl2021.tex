@@ -136,7 +136,9 @@ Without an author response, we would write our own code. Modules such as \href{h
 Our final paper is ``\usebibentry{burger_2021}{title}'' by \citeauthor*{burger_2021}. This paper seeks to classify a human subject's \emph{maladaptive schema} based on their unstructured text input. 
 
 \subsection{Specific Novel Approach}
-The task attempted by \citet{burger_2021} is particularly challenging. Inputs are unstructured natural language utterances from a variety of authors. In addition to the usual challenges of natural language, the classification target (psychological mental state) is highly subjective and likely varies person to person. This task is challenging for humans, requiring trained professionals who often do not reach consensus. Due to these obstacles, this task will likely be more challenging than typical natural language processing applications. 
+The task attempted by \citet{burger_2021} is particularly challenging. Inputs are unstructured natural language utterances from a variety of authors. In addition to the usual challenges of natural language, the classification target (psychological mental state) is highly subjective and likely varies person to person. This task is challenging for humans, requiring trained professionals who often do not reach consensus. Due to these obstacles, this task will likely be more challenging than typical natural language processing applications.
+
+Not surprisingly, the authors found only limited existing use of NLP techniques as psychological assessment tools for interpreting free text. Essentially, the field is wide open. The authors performed their study as a benchmark for future research to improve upon. For example, the researchers used plain-vanilla word embeddings based on a Wikipedia-trained language model, and they used relatively simple LSTMs. More state-of-the-art approaches might improve on the researchers' results.
 
 \subsection{Specific Hypotheses to Verify}
 We will attempt to verify the paper's hypothesis H1. This hypothesis asserts that mental health schema can be predicted given an unstructured utterance. 
@@ -145,7 +147,7 @@ We will attempt to verify the paper's hypothesis H1. This hypothesis asserts tha
 For the project, we are considering performing one/several of the following ablations: 
 \begin{itemize}
   \item Use a state of the art model like BERT and compare results to the original paper
-  \item Use a hierarchical model to take advantage structure in downward arrow data
+  \item Use a hierarchical model to take advantage of structure in downward arrow data
   \item Add attention mechanism to identify what parts of utterances predict their schemas best
 \end{itemize}
 
@@ -153,7 +155,7 @@ For the project, we are considering performing one/several of the following abla
 All data used in this paper is publicly available on the \href{https://data.4tu.nl/info/en/about-4turesearchdata/organisation}{4TU.ResearchData} repository. It has been successfully retrieved. 
 
 \subsection{Computational Feasibility}
-This study relies on a relatively small dataset (5747 utterances). The models used are not especially complicated. \citet{burger_2021} performed a grid search which took on the order of 40 hours to complete. If computational time becomes prohibitive, we plan to reduce the scope our grid while still confirming key results. 
+This study relies on a relatively small dataset (5747 utterances). The models used are not especially complicated. However, \citet{burger_2021} trained hundreds of RNN models to decrease the role of chance in the final results, and training took about 18 hours. If computational time becomes prohibitive, we plan to reduce the number of models trained while still confirming key results. 
 
 \subsection{Code Reuse}
 The code from this study is available on \href{https://data.4tu.nl/info/en/about-4turesearchdata/organisation}{4TU.ResearchData}. The code will be reviewed, however new code will be written for this project. 
