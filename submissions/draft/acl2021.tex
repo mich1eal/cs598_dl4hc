@@ -90,6 +90,9 @@ Clearly itemize the claims you are testing:
 
 
 \section{Methodology}
+The authors' code is available in its entirety online \citep{burger_2021_data}. While the code was used as a reference, it was not directly copied. 
+
+An additional code repository was created at github. An environment was selected using Windows 10 and Python 3.10. GPUs were not used for training. 
 
 In this section you explain your approach -- did you use the author's code, did you aim to re-implement the approach from the paper description? Summarize the resources (code, documentation, GPUs) that you used. 
 
@@ -97,15 +100,22 @@ In this section you explain your approach -- did you use the author's code, did 
 Describe the models used in the original paper, including the architecture, learning objective and the number of parameters.
 
 \subsection{Data descriptions}
+The data used in the original paper is available online\citep{burger_2021_data}. The raw data was not published due to privacy concerns, however anonymized data is available. The processed data was retrieved and used in this experiment. 
+
 Describe the datasets you used and how you obtained them. 
 
 \subsection{Hyperparameters}
+Especially for their RNN model, \citeauthor{burger_2021} conducted a large parameter sweep to optimize their results. In an effort to improve efficiency, only the best three results were verified. 
+
+
 Describe how you set the hyperparameters and what the source was for their value (e.g. paper, code or your guess). 
 
 \subsection{Implementation}
 Describe whether you use the existing code or write your own code, with the link to the code. Note that the github repo you link to should be public and have a clear documentation.
 
 \subsection{Computational requirements}
+
+
 Provide information on computational requirements for each of your experiments. For example, the number of CPU/GPU hours and memory requirements.
 Mention both your estimation made before running the experiments (i.e. in the proposal) and the actual resources you used to reproducing the experiments. 
 \textbf{\textit{You'll need to think about this ahead of time, and write your code in a way that captures this information so you can later add it to this section.} }
