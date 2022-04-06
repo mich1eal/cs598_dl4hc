@@ -10,6 +10,9 @@ DOI: https://doi.org/10.1371/journal.pone.0257832
 
 """
 
+DATA_DIR = '../data'
+
+
 
 
 
