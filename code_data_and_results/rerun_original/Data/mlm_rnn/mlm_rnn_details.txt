@@ -1,0 +1,10 @@
+experiment_name,multilabel_rnn
+random_method,uniform_mersenne
+reduction_method,
+reduction_interval,50
+reduction_window,20
+reduction_threshold,0.2
+reduction_metric,val_acc
+complete_time,11/13/20/23:02
+x_shape,"(4151, 25)"
+y_shape,"(4151, 9)"
