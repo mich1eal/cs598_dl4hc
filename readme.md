@@ -5,13 +5,13 @@ This repository contains the code and documentation of our CS 598 final project.
 The paper is available for download on the [PLOS ONE](https://app.dimensions.ai/details/publication/pub.1141955424]) website. 
 
 ## Repository Structure
-├── data 				- a subset of the paper's dataset (see below for access instructions)  
-├── papers 				- papers under consideration for this project  
-├── reference_material	- guidance documents  
-├── src 				- all code used in this project  
-│   └── cog_therapy.py 	
-├── submissions 		- final documents submitted to the class  
-├── requirements.txt  	- pip requirements file  
+├── data - a subset of the paper's dataset (see below for access instructions)  
+├── papers - papers under consideration for this project  
+├── reference_material - guidance documents  
+├── src - all code used in this project  
+│   └── cog_therapy.py  
+├── submissions - final documents submitted to the class  
+├── requirements.txt - pip requirements file  
 
 ## Data Access 
 The authors' full dataset and code is available for download on the [4TU.ResearchData](https://data.4tu.nl/articles/dataset/Dataset_and_Analyses_for_Extracting_Schemas_from_Thought_Records_using_Natural_Language_Processing/16685347) repository.
