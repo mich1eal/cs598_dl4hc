@@ -31,7 +31,7 @@ Data can be downloaded directly from this website as a zip file. To verify using
 Using a python terminal, run ```python cog_therapy.py```
 
 ## Project Dependencies 
-This project relies on the following python modules (pip format): 
+This project relies on the following python modules (pip format):  
 backcall==0.2.0  
 cloudpickle==2.0.0  
 colorama==0.4.4  
