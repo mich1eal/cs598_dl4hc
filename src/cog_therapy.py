@@ -15,6 +15,15 @@ import pandas as pd
 import numpy as np
 import torchtext
 import torch 
+import torch.nn as nn
+import torch.nn.functional as F
+
+# Set seed. Copied from HW3 RNN notebook.
+seed = 24
+#random.seed(seed)
+np.random.seed(seed)
+torch.manual_seed(seed)
+#os.environ["PYTHONHASHSEED"] = str(seed)
 
 
 DATA_DIR = '../data/DatasetsForH1'
@@ -199,7 +208,40 @@ test_set = CognitiveDataset(test_frame, 'test', threshold=1, max_len=25,
 ###### Baseline models
 
 
+
 ###### Paper primary model
+
+### Multi-label RNN
+
+class MultiLabelRNN(nn.Module):
+    
+    '''
+    PyTorch implementation of the researchers' multi-label RNN.
+    This is a bidirectional LSTM with a dropout layer and a dense
+    output layer, with sigmoid activation.
+    
+    For now, use torch nn.Embedding instead of GLoVE embeddings.
+    Will need to replace this with GLoVE embeddings.
+    '''
+    
+    def __init__(self, vocab_size, embed_size=100, hidden_size=100, dropout=0.5, num_labels=len(SCHEMAS)):
+        super().__init__()
+        
+        self.embedding = nn.Embedding(vocab_size, embed_size)
+        self.lstm = nn.LSTM(input_size=embed_size, hidden_size=hidden_size, num_layers=1,
+                            batch_first=True, bidirectional=True)
+        self.do = nn.Dropout(dropout)
+        self.fc = nn.Linear((2 * hidden_size), num_labels)
+        self.sigmoid = nn.Sigmoid()
+        
+    def forward(self, x):
+        embeds = self.embedding(x)
+        lstm_out, (hidden_state_n, cell_state_n) = self.lstm(embeds)
+        do_out = self.dropout(lstm_out)
+        label_probs = self.sigmoid(self.fc(do_out))
+        
+        return label_probs
+
 
 
 ###### Ablation study 
