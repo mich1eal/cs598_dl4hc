@@ -67,27 +67,30 @@ The authors then attempted to classify these thought records into schemas. "Sche
 
 \section{Scope of reproducibility}
 
-Explain the claims from the paper you picked for the reproduction study and briefly motivate your choice. We recommend picking the claim that is the central contribution of the paper. To find what this contribution is, try to summarize the most important result of the paper in 1-2 sentences, e.g. ``This paper introduces a new activation function X that outperforms a similar activation function Y on tasks Z,V,W.'' 
+We've chosen to test the paper's central hypothesis: that schemas can be automatically derived from patient thought records, and that this can be done with accuracy greater than random chance.
 
-Make the scope as specific as possible. It should be something that can be supported or rejected by your data. For example, consider this scope: 
-
-\textit{``Contextual embedding models have shown strong performance on a number of tasks across NLP. We will run experiments evaluating two types of contextual embedding models on datasets X, Y, and Z.''}
-
-
-That scope is too broad and lacks precise outcome (what is ``strong performance?''). Now consider this scope:
-
-\textit{``Finetuning pretrained BERT on SST-2 will have higher accuracy than an LSTM trained with GloVe embeddings.''}
-
-This scope is better because it's more specific and has an outcome that can be either supported or rejected based on your work: 
-\subsection{Addressed claims from the original paper}
-
-Clearly itemize the claims you are testing:
+The paper used GLoVE embeddings to encode thought records. The researchers tested these with four types of models:
 \begin{itemize}
-    \item Claim 1
-    \item Claim 2
-    \item Claim 3
+    \item k-nearest neighbors (classifier + regression algorithms)
+    \item Support vector machines (classifier + regression algorithms)
+    \item Multi-label LSTM, i.e. a single model to output predictions for all schemas (regression algorithm)
+    \item Per-schema LSTMs, i.e. one LSTM for each schema (classification algorithm)
 \end{itemize}
 
+To quantify and compare model performance, the researchers used Spearman's rank-order correlation between predictions and ground truth. The researchers established ground truth by rating how well each thought record represented each schema on a scale of 0 to 3, where 0 indicated "no correspondence" and 3 indicated "complete correspondence".
+
+The researchers found that their per-schema LSTMs outperformed the other models on all schemas except two: "power and control" and "meta-cognition". Those two schemas have low numbers of associated thought records.
+
+The researchers also found that their regression models performed better with the "power and control" schema, while the classification models performed better with "health".
+
+\subsection{Addressed claims from the original paper}
+
+We test the three claims above:
+\begin{itemize}
+    \item Per-schema LSTMs outperform other tested models on all schemas except "power and control" and "meta-cognition"
+    \item Regression models outperform classifiers on the "power and control" schema
+    \item Classifiers outperform regression models on the "health" schema
+\end{itemize}
 
 \section{Methodology}
 The authors' code is available in its entirety online \citep{burger_2021_data}. While the code was used as a reference, it was not directly copied. 
