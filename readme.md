@@ -63,6 +63,7 @@ pyzmq==22.3.0
 scikit-learn==1.0.2  
 scipy==1.8.0  
 six==1.16.0  
+skorch==0.11.0  
 smart-open==5.2.1  
 spyder-kernels==2.3.0  
 threadpoolctl==3.1.0  

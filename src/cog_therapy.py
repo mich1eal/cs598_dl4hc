@@ -16,7 +16,12 @@ import numpy as np
 import torchtext
 import torch 
 import torch.nn as nn
-import torch.nn.functional as F
+# To help perform hyperparameter grid search
+from skorch import NeuralNetClassifier
+from sklearn.model_selection import GridSearchCV
+# To compute model goodness-of-fit
+from scipy.stats import spearmanr
+
 
 # Set seed. Copied from HW3 RNN notebook.
 seed = 24
@@ -205,6 +210,31 @@ test_set = CognitiveDataset(test_frame, 'test', threshold=1, max_len=25,
                            idx2word=train_set.idx2word, 
                            word2idx=train_set.word2idx)
 
+###### Evaluation routines
+
+def spearman_r(X, Y):
+    '''
+    Computes Spearman rank-order correlation between
+    model predictions and ground truth.
+    Code taken from researchers' original Jupyter notebook.
+    
+    Inputs:
+        X: matrix of predictions, with one column per schema.
+        Y: matrix of ground-truth labels, with one column per schema.
+    Output:
+        Numpy array of correlation coefficients, one per schema
+    '''
+    
+    # Initialize array of corr coefficients
+    rho_array = np.zeros(X.shape[1])
+
+    # Compute coefficient over each schema and save
+    for schema in range(len(SCHEMAS)):
+        rho, p_val = spearmanr(X[:, schema], Y[:, schema])
+        rho_array[schema] = rho
+
+    return rho_array
+
 ###### Baseline models
 
 
@@ -241,6 +271,32 @@ class MultiLabelRNN(nn.Module):
         label_probs = self.sigmoid(self.fc(do_out))
         
         return label_probs
+
+
+### TO DO
+
+# 0) Create dataloaders for train, validation and test sets
+# 1) Proof of concept -- train multi-label RNN
+# 2) Tune hyperparameters using grid search
+#    Possible ways to do this: https://medium.com/pytorch/accelerate-your-hyperparameter-optimization-with-pytorchs-ecosystem-tools-bc17001b9a49
+#        https://discuss.pytorch.org/t/what-is-the-best-way-to-perform-hyper-parameter-search-in-pytorch/19943/3
+#        https://skorch.readthedocs.io/en/stable/user/quickstart.html
+#        Use skorch package to wrap PyTorch in SciKit-Learn to take advantage of sklearn functionality
+# 3) Get model with best mean absolute error
+# 4) Compute Spearman rank-order correlation between model predictions and ground truth for each schema
+# 5) Train 30 models with same parameters as best model. Report the mean correlations.
+
+# Routine to perform grid search over RNN parameters.
+# Use skorch package to implement grid search.
+
+def RNNGridSearch():
+    
+    # Specs for grid search.
+    # NOTE: this does not include learning rate, optimizer type, or loss function types.
+    params = {'module__hidden_size': [50,100],
+              'module__dropout': [0.1, 0.5],
+              'batch_size': [32, 64],
+              'epochs': [100]}
 
 
 
