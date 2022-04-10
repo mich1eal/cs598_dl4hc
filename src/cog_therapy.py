@@ -382,6 +382,10 @@ def train_rnn(model, train_loader, val_loader, n_epochs=100):
             
         # Compute mean train_loss
         train_loss = train_loss / len(train_loader)
+        print(f'Epoch {epoch+1}: training loss {train_loss}')
+        # Evaluate model on validation data
+        eval_score = eval_rnn(model, val_loader)
+        print(f'Validation score: {eval_score}')
         
     
     
