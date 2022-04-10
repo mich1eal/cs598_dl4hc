@@ -16,9 +16,12 @@ import numpy as np
 import torchtext
 import torch 
 import torch.nn as nn
+from torch.utils.data import DataLoader
 # To help perform hyperparameter grid search
 from skorch import NeuralNetClassifier
 from sklearn.model_selection import GridSearchCV
+# To compute model score on validation set
+from sklearn.metrics import mean_absolute_error
 # To compute model goodness-of-fit
 from scipy.stats import spearmanr
 
@@ -210,6 +213,16 @@ test_set = CognitiveDataset(test_frame, 'test', threshold=1, max_len=25,
                            idx2word=train_set.idx2word, 
                            word2idx=train_set.word2idx)
 
+# Routine to generate dataloader
+
+def create_dataloader(dataset, batch_size=32, shuffle=False):
+    '''
+    Return a dataloader for the specified dataset and batch size.
+    Very similar to most CS 598 DLH homework problems.
+    '''
+    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+    
+
 ###### Evaluation routines
 
 def spearman_r(X, Y):
@@ -289,7 +302,7 @@ class MultiLabelRNN(nn.Module):
 # Routine to perform grid search over RNN parameters.
 # Use skorch package to implement grid search.
 
-def RNNGridSearch():
+def rnn_grid_search():
     
     # Specs for grid search.
     # NOTE: this does not include learning rate, optimizer type, or loss function types.
@@ -297,7 +310,80 @@ def RNNGridSearch():
               'module__dropout': [0.1, 0.5],
               'batch_size': [32, 64],
               'epochs': [100]}
+    
+    # ...this is only a bare start...continue.
 
+# Define starter multi-label RNN, plus its loss function and optimizer.
+# Start with the settings that gave the best results for the researchers.
 
+mlm_starter_RNN = MultiLabelRNN(2624, embed_size=100, hidden_size=100, dropout=0.1, num_labels=len(SCHEMAS))
+loss_func = nn.BCEWithLogitsLoss()  # Hopefully this gives something like a categorical cross-entropy loss
+optimizer = nn.Adam(mlm_starter_RNN.parameters(), lr=0.001)  # Using Keras' default learning rate, which is probably what the researchers used
+
+# Stock routine to evaluate initial RNN.
+# Taken from HW3. Will replace with skorch functionality.
+
+def eval_rnn(model, val_loader):
+    '''
+    Evaluate the given RNN using the validation set.
+    This is very similar to the eval_model() routine in HW3's RNN assignment.
+    
+    This model assumes "optimizer" and "loss_func" have already been created.
+
+    Input:
+        model: the RNN to be trained
+        val_loader: DataLoader for the validation set
+    Output: Spearman correlation coefficients for each schema
+    '''
+    
+    model.eval()
+    y_score = torch.Tensor()
+    y_true = torch.LongTensor()
+    for x, y in val_loader:
+        y_hat = model(x)
+        y_score = torch.cat((y_score, y_hat.detach().to('cpu')), dim=0)
+        y_true = torch.cat((y_true, y.detach().to('cpu')), dim=0)
+        
+    return mean_absolute_error(y_score, y_true)
+
+# Stock routine to train initial RNN.
+# Taken from HW3. Will replace with skorch functionality.
+
+def train_rnn(model, train_loader, val_loader, n_epochs=100):
+    '''
+    Train the given RNN model on the given training set, and
+    evaluate it using the validation set.
+    This is very similar to the train() routine in HW3's RNN assignment.
+    
+    This model assumes "optimizer" and "loss_func" have already been created.
+
+    Input:
+        model: the RNN to be trained
+        train_loader: DataLoader for the training dataset
+        val_loader: DataLoader for the validation set
+        n_epochs: the number of training epochs
+    Output: none
+    '''
+
+    for epoch in range(n_epochs):
+        model.train()
+        train_loss = 0
+        for x, y in train_loader:
+            loss = None            # Initialize loss
+            optimizer.zero_grad()  # Zero out the gradient
+            y_hat = model(x)       # Predict schemas
+            # Compute loss
+            loss = loss_func(y_hat, y)
+            # Back propagation
+            loss.backward()
+            optimizer.step()
+            # Accumulate training loss
+            train_loss += loss.item()
+            
+        # Compute mean train_loss
+        train_loss = train_loss / len(train_loader)
+        
+    
+    
 
 ###### Ablation study 
