@@ -11,9 +11,12 @@ Data repo: https://github.com/mich1eal/cs598_dl4hc
 For dependencies, and data acquisition instructions, please see this repository's readme
 """
 
+from collections import Counter
 import pandas as pd
 import numpy as np
 import torchtext
+from torchtext.vocab import GloVe
+from torchtext.vocab import Vocab
 import torch 
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -85,7 +88,7 @@ test_frame = in_frame.iloc[split_val:]
 ###### Prepare dataloader
 # we define a custom text dataset for use with all models 
 class CognitiveDataset(torch.utils.data.Dataset):
-    def __init__(self, in_frame, split, max_len, threshold=1, idx2word=None, word2idx=None):
+    def __init__(self, in_frame, split, max_len, vocab_size=2000, vocab=None, embeddings=None, embed_mode=None):
         '''
         in_frame - a dataframe with columns defined above 
         split - one of {'train', 'val', 'test'}
@@ -96,71 +99,55 @@ class CognitiveDataset(torch.utils.data.Dataset):
         
         self.utterances = in_frame['tokens'].to_list()
         self.labels = in_frame[SCHEMAS].to_numpy()
-        self.threshold = threshold
+        self.vocab_size = vocab_size
         assert split in {'train', 'val', 'test'}
         self.split = split
         self.max_len = max_len
 
         # Dictionaries
-        self.idx2word = idx2word
-        self.word2idx = word2idx
+        self.vocab = vocab
         if split == 'train':
-            self.build_dictionary()
-        self.vocab_size = len(self.word2idx)
+            self.build_vocab(embeddings)
+        
+        assert embed_mode in {'token', 'utterance', None}
+        self.embed_mode = embed_mode 
         
         # Convert text to indices
         self.textual_ids = []
         self.convert_text()
 
-    def build_dictionary(self): 
+    def build_vocab(self, embeddings): 
         '''
-        Build dictionaries idx2word and word2idx. This is only called when split='train', as these
-        dictionaries are passed in to the __init__(...) function otherwise. 
+        Build torch dictionary. This is only called when split='train', as the 
+        vocab is passed in to the __init__(...) function otherwise. 
         '''
         assert self.split == 'train'
         
-        self.idx2word = {0:PAD, 1:END, 2: UNK}
-        self.word2idx = {PAD:0, END:1, UNK: 2}
-
         # Count the frequencies of all words in the training data 
-        token_freq = {}
-        idx = 3
+        token_list = []
 
         for utterance in self.utterances:
-            for token in utterance:
+            token_list.extend(utterance)
+            
+        token_counter = Counter(token_list)
+            
+            
+        self.vocab = Vocab(token_counter, 
+                           max_size=self.vocab_size,
+                           specials=[PAD, END, UNK],
+                           vectors=self.embeddings)
 
-                #keep track of word frequency 
-                if token in token_freq:
-                    token_freq[token] += 1
-                else:
-                    token_freq[token] = 1
-
-                # once we have seen word enough times, add it to index
-                if token_freq[token] == self.threshold:
-                    self.idx2word[idx] = token
-                    self.word2idx[token] = idx
-                    idx += 1
-    
-    def convert_text(self):
+    def convert_text(self, embeddings):
         '''
         Convert each utterance to a list of indices
         '''
-        
-        # Get unknown and end of sentence indeces for efficiency 
-        unk_token = self.word2idx[UNK]
-        eos_token = self.word2idx[END]
-        
         for utterance in self.utterances:
-            idx_list = []        
+            idx_list = [self.vocab.stoi[token] for token in utterance]
       
-            for token in utterance:
-                #get index of token, if not in list use uknown token
-                idx_list.append(self.word2idx.get(token, unk_token))
-          
-            #always add EOS tag
-            idx_list.append(eos_token)
+            idx_list.append(self.vocab.stoi[END])
+            
             self.textual_ids.append(idx_list)
-      
+                       
 
     def get_text(self, idx):
         '''
@@ -182,8 +169,27 @@ class CognitiveDataset(torch.utils.data.Dataset):
     
             indices = indices + pad_list
 
-        #otherwise length is correct, no action
-        return torch.LongTensor(indices)
+
+        vectors = self.vocab.vectors
+        if self.embed_mode is None: 
+            #no embedding required, use indeces
+            return torch.LongTensor(indices)
+        
+        elif self.embed_mode == 'token':
+            #return embedding for eadch token
+            vectors = self.vocab.vectors
+            out = torch.zeros([self.max_len, vectors[0].len], dtype=torch.FloatTensor)
+            
+            for i, idx in enumerate(indices):
+                out[:, i] = vectors[idx] 
+            return out
+            
+        else:
+            #return one embedding for utterance 
+            return None
+            
+            
+        
     
     def get_label(self, idx):
         '''
@@ -195,7 +201,7 @@ class CognitiveDataset(torch.utils.data.Dataset):
         '''
         Return the number of utterances in the dataset
         '''
-        return len(self.examples)
+        return len(self.utterances)
     
     def __getitem__(self, idx):
         '''
