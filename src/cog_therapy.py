@@ -137,7 +137,7 @@ class CognitiveDataset(torch.utils.data.Dataset):
                            specials=[PAD, END, UNK],
                            vectors=self.embeddings)
 
-    def convert_text(self, embeddings):
+    def convert_text(self):
         '''
         Convert each utterance to a list of indices
         '''
@@ -151,8 +151,7 @@ class CognitiveDataset(torch.utils.data.Dataset):
 
     def get_text(self, idx):
         '''
-        Return the utterance at idx as a long tensor of integers 
-        corresponding to the words in the utterance.
+        Return the utterance per the type of ebedding specified
         Adds padding as required
         '''
         
@@ -164,19 +163,17 @@ class CognitiveDataset(torch.utils.data.Dataset):
             #too long, trim
 
         elif idx_len < self.max_len:
-            #too short, add padding. Assumes padding idx is 0
-            pad_list = [self.word2idx[PAD]] * (self.max_len - idx_len)
-    
-            indices = indices + pad_list
-
-
+            #too short, add padding
+            indices += [self.vocab.stoi[PAD]] * (self.max_len - idx_len)
+            
+        #now return indices with the desired embedding 
         vectors = self.vocab.vectors
         if self.embed_mode is None: 
-            #no embedding required, use indeces
+            #no embedding required, return
             return torch.LongTensor(indices)
         
         elif self.embed_mode == 'token':
-            #return embedding for eadch token
+            #return embedding for each token
             vectors = self.vocab.vectors
             out = torch.zeros([self.max_len, vectors[0].len], dtype=torch.FloatTensor)
             
@@ -188,9 +185,8 @@ class CognitiveDataset(torch.utils.data.Dataset):
             #return one embedding for utterance 
             return None
             
-            
         
-    
+        
     def get_label(self, idx):
         '''
         Return labels as a long vector 
