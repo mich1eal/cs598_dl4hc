@@ -88,25 +88,27 @@ test_frame = in_frame.iloc[split_val:]
 ###### Prepare dataloader
 # we define a custom text dataset for use with all models 
 class CognitiveDataset(torch.utils.data.Dataset):
-    def __init__(self, in_frame, split, max_len, vocab_size=2000, vocab=None, embeddings=None, embed_mode=None):
+    def __init__(self, in_frame, max_len, vocab_size=2000, vocab=None, embeddings=None, embed_mode=None):
         '''
         in_frame - a dataframe with columns defined above 
-        split - one of {'train', 'val', 'test'}
         max_len - number of tokens to crop/pad sentences to
-        threshold - the minimum number of times a token must be seen to be added to the dictionary
-        idx2word, word2idx - generated here, used for mapping tokens and indeces 
+        vocab_size - will reduce the number of words to this value
+        vocab - either a torchtext.vocab.Vocab object, or None to build one
+        embeddings - if embed_mode is 'token' or 'utterance', used to create word embeddings
+        embed_mode: 
+            'token' - embed each token, return as tensor of shape(max_len, emb_dim)
+            'utterance' - embed each utterance, return as tensor of shape (max_len)
+            None - no embedding. return utterance as list of ints of length max_len
         '''
         
         self.utterances = in_frame['tokens'].to_list()
         self.labels = in_frame[SCHEMAS].to_numpy()
         self.vocab_size = vocab_size
-        assert split in {'train', 'val', 'test'}
-        self.split = split
         self.max_len = max_len
 
         # Dictionaries
         self.vocab = vocab
-        if split == 'train':
+        if vocab is None:
             self.build_vocab(embeddings)
         
         assert embed_mode in {'token', 'utterance', None}
@@ -120,9 +122,7 @@ class CognitiveDataset(torch.utils.data.Dataset):
         '''
         Build torch dictionary. This is only called when split='train', as the 
         vocab is passed in to the __init__(...) function otherwise. 
-        '''
-        assert self.split == 'train'
-        
+        '''        
         # Count the frequencies of all words in the training data 
         token_list = []
 
@@ -130,7 +130,6 @@ class CognitiveDataset(torch.utils.data.Dataset):
             token_list.extend(utterance)
             
         token_counter = Counter(token_list)
-            
             
         self.vocab = Vocab(token_counter, 
                            max_size=self.vocab_size,
@@ -159,31 +158,29 @@ class CognitiveDataset(torch.utils.data.Dataset):
         idx_len = len(indices)
 
         if idx_len > self.max_len:
-            indices = indices[:self.max_len]
             #too long, trim
+            indices = indices[:self.max_len]
 
         elif idx_len < self.max_len:
             #too short, add padding
             indices += [self.vocab.stoi[PAD]] * (self.max_len - idx_len)
             
         #now return indices with the desired embedding 
-        vectors = self.vocab.vectors
         if self.embed_mode is None: 
             #no embedding required, return
             return torch.LongTensor(indices)
-        
-        elif self.embed_mode == 'token':
-            #return embedding for each token
+        else: 
+            #embedding needed 
             vectors = self.vocab.vectors
-            out = torch.zeros([self.max_len, vectors[0].len], dtype=torch.FloatTensor)
             
-            for i, idx in enumerate(indices):
-                out[:, i] = vectors[idx] 
-            return out
-            
-        else:
-            #return one embedding for utterance 
-            return None
+            if self.embed_mode == 'token':
+                out = torch.zeros([self.max_len, vectors[0].len], dtype=torch.FloatTensor)
+                for i, idx in enumerate(indices):
+                    out[:, i] = vectors[idx] 
+                return out
+            else:
+                #return one embedding for utterance 
+                return None
             
         
         
@@ -205,15 +202,31 @@ class CognitiveDataset(torch.utils.data.Dataset):
         '''
         return self.get_text(idx), self.get_label(idx)
 
+#Load GLoVe embeddings
+embedding_glove = GloVe(name='6B', dim=100)
 
-train_set = CognitiveDataset(train_frame, 'train', threshold=1, max_len=25)
+train_set = CognitiveDataset(train_frame, 
+                             max_len=25,
+                             vocab_size=2000,
+                             vocab=None,
+                             embeddings=embedding_glove,
+                             embed_mode='token')
 
-val_set = CognitiveDataset(val_frame, 'val', threshold=1, max_len=25, 
-                           idx2word=train_set.idx2word, 
-                           word2idx=train_set.word2idx)
-test_set = CognitiveDataset(test_frame, 'test', threshold=1, max_len=25,  
-                           idx2word=train_set.idx2word, 
-                           word2idx=train_set.word2idx)
+val_set = CognitiveDataset(train_frame, 
+                             max_len=25,
+                             vocab_size=2000,
+                             vocab=train_set.vocab,
+                             embeddings=embedding_glove,
+                             embed_mode='token')
+
+test_set = CognitiveDataset(train_frame, 
+                             max_len=25,
+                             vocab_size=2000,
+                             vocab=train_set.vocab,
+                             embeddings=embedding_glove,
+                             embed_mode='token')
+
+assert False 
 
 # Routine to generate dataloader
 
