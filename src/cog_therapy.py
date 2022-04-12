@@ -16,7 +16,6 @@ import pandas as pd
 import numpy as np
 import torchtext
 from torchtext.vocab import GloVe
-from torchtext.vocab import Vocab
 import torch 
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -129,21 +128,20 @@ class CognitiveDataset(torch.utils.data.Dataset):
         for utterance in self.utterances:
             token_list.extend(utterance)
             
-        token_counter = Counter(token_list)
             
-        self.vocab = Vocab(token_counter, 
-                           max_size=self.vocab_size,
-                           specials=[PAD, END, UNK],
-                           vectors=self.embeddings)
+        self.vocab = torchtext.vocab.build_vocab_from_iterator(token_list, 
+                           max_tokens=self.vocab_size,
+                           specials=[PAD, END, UNK])
+        self.vocab.set_default_index(self.vocab[UNK])
 
     def convert_text(self):
         '''
         Convert each utterance to a list of indices
         '''
         for utterance in self.utterances:
-            idx_list = [self.vocab.stoi[token] for token in utterance]
+            idx_list = [self.vocab[token] for token in utterance]
       
-            idx_list.append(self.vocab.stoi[END])
+            idx_list.append(self.vocab[END])
             
             self.textual_ids.append(idx_list)
                        
@@ -163,7 +161,7 @@ class CognitiveDataset(torch.utils.data.Dataset):
 
         elif idx_len < self.max_len:
             #too short, add padding
-            indices += [self.vocab.stoi[PAD]] * (self.max_len - idx_len)
+            indices += [self.vocab[PAD]] * (self.max_len - idx_len)
             
         #now return indices with the desired embedding 
         if self.embed_mode is None: 
@@ -188,7 +186,8 @@ class CognitiveDataset(torch.utils.data.Dataset):
         '''
         Return labels as a long vector 
         '''
-        return torch.LongTensor(self.labels[idx])
+        out = torch.FloatTensor(self.labels[idx])
+        return torch.nn.functional.softmax(out, dim=0)
 
     def __len__(self):
         '''
@@ -202,32 +201,6 @@ class CognitiveDataset(torch.utils.data.Dataset):
         '''
         return self.get_text(idx), self.get_label(idx)
 
-#Load GLoVe embeddings
-embedding_glove = GloVe(name='6B', dim=100)
-
-train_set = CognitiveDataset(train_frame, 
-                             max_len=25,
-                             vocab_size=2000,
-                             vocab=None,
-                             embeddings=embedding_glove,
-                             embed_mode='token')
-
-val_set = CognitiveDataset(train_frame, 
-                             max_len=25,
-                             vocab_size=2000,
-                             vocab=train_set.vocab,
-                             embeddings=embedding_glove,
-                             embed_mode='token')
-
-test_set = CognitiveDataset(train_frame, 
-                             max_len=25,
-                             vocab_size=2000,
-                             vocab=train_set.vocab,
-                             embeddings=embedding_glove,
-                             embed_mode='token')
-
-assert False 
-
 # Routine to generate dataloader
 
 def create_dataloader(dataset, batch_size=32, shuffle=False):
@@ -236,7 +209,39 @@ def create_dataloader(dataset, batch_size=32, shuffle=False):
     Very similar to most CS 598 DLH homework problems.
     '''
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
-    
+
+#Load GLoVe embeddings
+embedding_glove = GloVe(name='6B', dim=100)
+
+train_set = CognitiveDataset(train_frame, 
+                             max_len=25,
+                             vocab_size=2000,
+                             vocab=None,
+                             embeddings=embedding_glove,
+                             embed_mode=None)
+
+val_set = CognitiveDataset(val_frame, 
+                             max_len=25,
+                             vocab_size=2000,
+                             vocab=train_set.vocab,
+                             embeddings=embedding_glove,
+                             embed_mode=None)
+
+test_set = CognitiveDataset(test_frame, 
+                             max_len=25,
+                             vocab_size=2000,
+                             vocab=train_set.vocab,
+                             embeddings=embedding_glove,
+                             embed_mode=None)
+
+#Load GLoVe embeddings
+embedding_glove = GloVe(name='6B', dim=100)
+
+train_loader = create_dataloader(train_set, shuffle=True)
+val_loader = create_dataloader(train_set, shuffle=False)
+test_loader = create_dataloader(train_set, shuffle=False)
+
+# Routine to generate dataloader
 
 ###### Evaluation routines
 
@@ -294,10 +299,14 @@ class MultiLabelRNN(nn.Module):
         
     def forward(self, x):
         embeds = self.embedding(x)
-        lstm_out, (hidden_state_n, cell_state_n) = self.lstm(embeds)
-        do_out = self.dropout(lstm_out)
-        label_probs = self.sigmoid(self.fc(do_out))
         
+        lstm_out, (hidden_state_n, cell_state_n) = self.lstm(embeds)
+        #get last layer of output 
+        lstm_last = lstm_out[:, -1, :].squeeze(1)
+        
+        do_out = self.do(lstm_last)
+        label_probs = self.sigmoid(self.fc(do_out))
+                
         return label_probs
 
 
@@ -331,9 +340,9 @@ def rnn_grid_search():
 # Define starter multi-label RNN, plus its loss function and optimizer.
 # Start with the settings that gave the best results for the researchers.
 
-mlm_starter_RNN = MultiLabelRNN(2624, embed_size=100, hidden_size=100, dropout=0.1, num_labels=len(SCHEMAS))
-loss_func = nn.BCEWithLogitsLoss()  # Hopefully this gives something like a categorical cross-entropy loss
-optimizer = nn.Adam(mlm_starter_RNN.parameters(), lr=0.001)  # Using Keras' default learning rate, which is probably what the researchers used
+mlm_starter_RNN = MultiLabelRNN(2000, embed_size=100, hidden_size=100, dropout=0.1, num_labels=len(SCHEMAS))
+loss_func = nn.BCELoss()  # Hopefully this gives something like a categorical cross-entropy loss
+optimizer = torch.optim.Adam(mlm_starter_RNN.parameters(), lr=0.01)  # Using Keras' default learning rate, which is probably what the researchers used
 
 # Stock routine to evaluate initial RNN.
 # Taken from HW3. Will replace with skorch functionality.
@@ -387,6 +396,7 @@ def train_rnn(model, train_loader, val_loader, n_epochs=100):
             loss = None            # Initialize loss
             optimizer.zero_grad()  # Zero out the gradient
             y_hat = model(x)       # Predict schemas
+            
             # Compute loss
             loss = loss_func(y_hat, y)
             # Back propagation
@@ -402,7 +412,10 @@ def train_rnn(model, train_loader, val_loader, n_epochs=100):
         eval_score = eval_rnn(model, val_loader)
         print(f'Validation score: {eval_score}')
         
-    
+
+train_rnn(mlm_starter_RNN, train_loader, val_loader)
+
+
     
 
 ###### Ablation study 
