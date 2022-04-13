@@ -57,31 +57,29 @@
 
 \section{Introduction}
 
-\citeauthor{burger_2021} found that most text written by patients in psychological care is only interpreted by human therapists. The authors found few instances of automated processing of such text. This is understandable since misinterpretation could lead to a loss of patient trust, but this situation has left therapists without potentially valuable assistance.
+Most text written by patients in psychological care is only interpreted by human therapists \citep{burger_2021}. This makes sense because errors in interpretation can result in loss of patient trust, resulting in a lower quality of care. Despite this risk, natural language processioning (NLP) could be used as a powerful aid for healthcare providers. In their paper, \citeauthor{burger_2021} begin to explore this space, seeking to discover whether or not NLP techniques can classify patient writing at all.
 
-As they were beginning from ground zero, the authors conducted an experiment to determine whether NLP techniques could classify patient writing at all.
+A useful cognitive therapy exercise involves having patients identify the thoughts that underlie their reactions to potentially distressing situations. \citeauthor{burger_2021} recruited online participants to participate in this exercise. The authors then attempted to classify these thought records into schemas. "Schemas" refer to core beliefs that function as the infrastructure to one's views of the world and one's relationship to it. A standard set of schemas defined by \citeauthor{millings_2015} was used. A team of psychologists generated truth data by manually evaluating patient text against the schemas. 
 
-For patients in cognitive therapy, one useful exercise is to identify the thoughts that underlie their reactions to potentially distressing situations. The authors recruited participants to record the thoughts behind their reactions to a set of situations, such as not being acknowledged by an acquaintance.
-
-The authors then attempted to classify these thought records into schemas. "Schemas" refer to core beliefs that function as the infrastructure to one's views of the world and one's relationship to it. \cite{burger_2021} used schema classifications based on those used by \citeauthor{millings_2015}. The researchers established baseline results for future investigators to improve upon.
+\citeauthor{burger_2021} establish a baseline for applying NLP to cognitive therapy. The authors intend for future researchers to leverage their paper and data to continue to explore applications of NLP to this field. In this paper, we verify the results of \citeauthor{burger_2021}, and implement several design modifications. We demonstrate that a preprossing schema which minimizes data loss, paired with state-of-the-art NLP models yield improved results. 
 
 \section{Scope of reproducibility}
 
-We've chosen to test the paper's central hypothesis: that schemas can be automatically derived from patient thought records, and that this can be done with accuracy greater than random chance.
+In this paper, we test the central hypothesis of \citeauthor{burger_2021}. We verify that schemas can be automatically predicted from patient thought records, and that this can be done with accuracy greater than random chance.
 
-The paper used GLoVE embeddings to encode thought records. The researchers tested these with four types of models:
+In particular, we re-implement four models used in the paper:
 \begin{itemize}
-    \item k-nearest neighbors (classifier + regression algorithms)
-    \item Support vector machines (classifier + regression algorithms)
+    \item k-nearest neighbors (classifier and regression algorithms)
+    \item Support vector machines (classifier and regression algorithms)
     \item Multi-label LSTM, i.e. a single model to output predictions for all schemas (regression algorithm)
     \item Per-schema LSTMs, i.e. one LSTM for each schema (classification algorithm)
 \end{itemize}
 
-To quantify and compare model performance, the researchers used Spearman's rank-order correlation between predictions and ground truth. The researchers established ground truth by rating how well each thought record represented each schema on a scale of 0 to 3, where 0 indicated "no correspondence" and 3 indicated "complete correspondence".
+In order to generate comparable results, we adopt a number of the design choices of \citeauthor{burger_2021}. We use pre-trained GLoVE embeddings in all of the above models. 
 
-The researchers found that their per-schema LSTMs outperformed the other models on all schemas except two: "power and control" and "meta-cognition". Those two schemas have low numbers of associated thought records.
+We also measure model performance using Spearman's rank-order correlation between predictions and ground truth. 
 
-The researchers also found that their regression models performed better with the "power and control" schema, while the classification models performed better with "health".
+We expect to obtain similar resluts to \citeauthor{burger_2021}. We anticipate that per-schema LSTMs will receive the highest score on all schemas except two: "power and control" and "meta-cognition". Those two schemas have low numbers of associated thought records. The researchers also found that their regression models performed better with the "power and control" schema, while the classification models performed better with "health".
 
 \subsection{Addressed claims from the original paper}
 
