@@ -11,9 +11,11 @@ Data repo: https://github.com/mich1eal/cs598_dl4hc
 For dependencies, and data acquisition instructions, please see this repository's readme
 """
 
+from collections import Counter
 import pandas as pd
 import numpy as np
 import torchtext
+from torchtext.vocab import GloVe
 import torch 
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -85,87 +87,68 @@ test_frame = in_frame.iloc[split_val:]
 ###### Prepare dataloader
 # we define a custom text dataset for use with all models 
 class CognitiveDataset(torch.utils.data.Dataset):
-    def __init__(self, in_frame, split, max_len, threshold=1, idx2word=None, word2idx=None):
+    def __init__(self, in_frame, max_len, vocab_size=2000, vocab=None, embeddings=None, embed_mode=None):
         '''
         in_frame - a dataframe with columns defined above 
-        split - one of {'train', 'val', 'test'}
         max_len - number of tokens to crop/pad sentences to
-        threshold - the minimum number of times a token must be seen to be added to the dictionary
-        idx2word, word2idx - generated here, used for mapping tokens and indeces 
+        vocab_size - will reduce the number of words to this value
+        vocab - either a torchtext.vocab.Vocab object, or None to build one
+        embeddings - if embed_mode is 'token' or 'utterance', used to create word embeddings
+        embed_mode: 
+            'token' - embed each token, return as tensor of shape(max_len, emb_dim)
+            'utterance' - embed each utterance, return as tensor of shape (max_len)
+            None - no embedding. return utterance as list of ints of length max_len
         '''
         
         self.utterances = in_frame['tokens'].to_list()
         self.labels = in_frame[SCHEMAS].to_numpy()
-        self.threshold = threshold
-        assert split in {'train', 'val', 'test'}
-        self.split = split
+        self.vocab_size = vocab_size
         self.max_len = max_len
 
         # Dictionaries
-        self.idx2word = idx2word
-        self.word2idx = word2idx
-        if split == 'train':
-            self.build_dictionary()
-        self.vocab_size = len(self.word2idx)
+        self.vocab = vocab
+        if vocab is None:
+            self.build_vocab(embeddings)
+        
+        assert embed_mode in {'token', 'utterance', None}
+        self.embed_mode = embed_mode 
         
         # Convert text to indices
         self.textual_ids = []
         self.convert_text()
 
-    def build_dictionary(self): 
+    def build_vocab(self, embeddings): 
         '''
-        Build dictionaries idx2word and word2idx. This is only called when split='train', as these
-        dictionaries are passed in to the __init__(...) function otherwise. 
-        '''
-        assert self.split == 'train'
-        
-        self.idx2word = {0:PAD, 1:END, 2: UNK}
-        self.word2idx = {PAD:0, END:1, UNK: 2}
-
+        Build torch dictionary. This is only called when split='train', as the 
+        vocab is passed in to the __init__(...) function otherwise. 
+        '''        
         # Count the frequencies of all words in the training data 
-        token_freq = {}
-        idx = 3
+        token_list = []
 
         for utterance in self.utterances:
-            for token in utterance:
+            token_list.extend(utterance)
+            
+            
+        self.vocab = torchtext.vocab.build_vocab_from_iterator(token_list, 
+                           max_tokens=self.vocab_size,
+                           specials=[PAD, END, UNK])
+        self.vocab.set_default_index(self.vocab[UNK])
 
-                #keep track of word frequency 
-                if token in token_freq:
-                    token_freq[token] += 1
-                else:
-                    token_freq[token] = 1
-
-                # once we have seen word enough times, add it to index
-                if token_freq[token] == self.threshold:
-                    self.idx2word[idx] = token
-                    self.word2idx[token] = idx
-                    idx += 1
-    
     def convert_text(self):
         '''
         Convert each utterance to a list of indices
         '''
-        
-        # Get unknown and end of sentence indeces for efficiency 
-        unk_token = self.word2idx[UNK]
-        eos_token = self.word2idx[END]
-        
         for utterance in self.utterances:
-            idx_list = []        
+            idx_list = [self.vocab[token] for token in utterance]
       
-            for token in utterance:
-                #get index of token, if not in list use uknown token
-                idx_list.append(self.word2idx.get(token, unk_token))
-          
-            #always add EOS tag
-            idx_list.append(eos_token)
+            idx_list.append(self.vocab[END])
+            
             self.textual_ids.append(idx_list)
-      
+                       
 
     def get_text(self, idx):
         '''
-        Return the utterance at idx as a long tensor of integers 
-        corresponding to the words in the utterance.
+        Return the utterance per the type of ebedding specified
         Adds padding as required
         '''
         
@@ -173,45 +156,50 @@ class CognitiveDataset(torch.utils.data.Dataset):
         idx_len = len(indices)
 
         if idx_len > self.max_len:
-            indices = indices[:self.max_len]
             #too long, trim
+            indices = indices[:self.max_len]
 
         elif idx_len < self.max_len:
-            #too short, add padding. Assumes padding idx is 0
-            pad_list = [self.word2idx[PAD]] * (self.max_len - idx_len)
-    
-            indices = indices + pad_list
-
-        #otherwise length is correct, no action
-        return torch.LongTensor(indices)
-    
+            #too short, add padding
+            indices += [self.vocab[PAD]] * (self.max_len - idx_len)
+            
+        #now return indices with the desired embedding 
+        if self.embed_mode is None: 
+            #no embedding required, return
+            return torch.LongTensor(indices)
+        else: 
+            #embedding needed 
+            vectors = self.vocab.vectors
+            
+            if self.embed_mode == 'token':
+                out = torch.zeros([self.max_len, vectors[0].len], dtype=torch.FloatTensor)
+                for i, idx in enumerate(indices):
+                    out[:, i] = vectors[idx] 
+                return out
+            else:
+                #return one embedding for utterance 
+                return None
+            
+        
+        
     def get_label(self, idx):
         '''
         Return labels as a long vector 
         '''
-        return torch.LongTensor(self.labels[idx])
+        out = torch.FloatTensor(self.labels[idx])
+        return torch.nn.functional.softmax(out, dim=0)
 
     def __len__(self):
         '''
         Return the number of utterances in the dataset
         '''
-        return len(self.examples)
+        return len(self.utterances)
     
     def __getitem__(self, idx):
         '''
         Return the utterance, and label of the review specified by idx.
         '''
         return self.get_text(idx), self.get_label(idx)
-
-
-train_set = CognitiveDataset(train_frame, 'train', threshold=1, max_len=25)
-
-val_set = CognitiveDataset(val_frame, 'val', threshold=1, max_len=25, 
-                           idx2word=train_set.idx2word, 
-                           word2idx=train_set.word2idx)
-test_set = CognitiveDataset(test_frame, 'test', threshold=1, max_len=25,  
-                           idx2word=train_set.idx2word, 
-                           word2idx=train_set.word2idx)
 
 # Routine to generate dataloader
 
@@ -221,7 +209,39 @@ def create_dataloader(dataset, batch_size=32, shuffle=False):
     Very similar to most CS 598 DLH homework problems.
     '''
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
-    
+
+#Load GLoVe embeddings
+embedding_glove = GloVe(name='6B', dim=100)
+
+train_set = CognitiveDataset(train_frame, 
+                             max_len=25,
+                             vocab_size=2000,
+                             vocab=None,
+                             embeddings=embedding_glove,
+                             embed_mode=None)
+
+val_set = CognitiveDataset(val_frame, 
+                             max_len=25,
+                             vocab_size=2000,
+                             vocab=train_set.vocab,
+                             embeddings=embedding_glove,
+                             embed_mode=None)
+
+test_set = CognitiveDataset(test_frame, 
+                             max_len=25,
+                             vocab_size=2000,
+                             vocab=train_set.vocab,
+                             embeddings=embedding_glove,
+                             embed_mode=None)
+
+#Load GLoVe embeddings
+embedding_glove = GloVe(name='6B', dim=100)
+
+train_loader = create_dataloader(train_set, shuffle=True)
+val_loader = create_dataloader(train_set, shuffle=False)
+test_loader = create_dataloader(train_set, shuffle=False)
+
+# Routine to generate dataloader
 
 ###### Evaluation routines
 
@@ -279,10 +299,14 @@ class MultiLabelRNN(nn.Module):
         
     def forward(self, x):
         embeds = self.embedding(x)
-        lstm_out, (hidden_state_n, cell_state_n) = self.lstm(embeds)
-        do_out = self.dropout(lstm_out)
-        label_probs = self.sigmoid(self.fc(do_out))
         
+        lstm_out, (hidden_state_n, cell_state_n) = self.lstm(embeds)
+        #get last layer of output 
+        lstm_last = lstm_out[:, -1, :].squeeze(1)
+        
+        do_out = self.do(lstm_last)
+        label_probs = self.sigmoid(self.fc(do_out))
+                
         return label_probs
 
 
@@ -316,9 +340,9 @@ def rnn_grid_search():
 # Define starter multi-label RNN, plus its loss function and optimizer.
 # Start with the settings that gave the best results for the researchers.
 
-mlm_starter_RNN = MultiLabelRNN(2624, embed_size=100, hidden_size=100, dropout=0.1, num_labels=len(SCHEMAS))
-loss_func = nn.BCEWithLogitsLoss()  # Hopefully this gives something like a categorical cross-entropy loss
-optimizer = nn.Adam(mlm_starter_RNN.parameters(), lr=0.001)  # Using Keras' default learning rate, which is probably what the researchers used
+mlm_starter_RNN = MultiLabelRNN(2000, embed_size=100, hidden_size=100, dropout=0.1, num_labels=len(SCHEMAS))
+loss_func = nn.BCELoss()  # Hopefully this gives something like a categorical cross-entropy loss
+optimizer = torch.optim.Adam(mlm_starter_RNN.parameters(), lr=0.01)  # Using Keras' default learning rate, which is probably what the researchers used
 
 # Stock routine to evaluate initial RNN.
 # Taken from HW3. Will replace with skorch functionality.
@@ -372,6 +396,7 @@ def train_rnn(model, train_loader, val_loader, n_epochs=100):
             loss = None            # Initialize loss
             optimizer.zero_grad()  # Zero out the gradient
             y_hat = model(x)       # Predict schemas
+            
             # Compute loss
             loss = loss_func(y_hat, y)
             # Back propagation
@@ -387,7 +412,10 @@ def train_rnn(model, train_loader, val_loader, n_epochs=100):
         eval_score = eval_rnn(model, val_loader)
         print(f'Validation score: {eval_score}')
         
-    
+
+train_rnn(mlm_starter_RNN, train_loader, val_loader)
+
+
     
 
 ###### Ablation study 
