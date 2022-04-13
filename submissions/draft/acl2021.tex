@@ -18,6 +18,7 @@
 \usepackage{times}
 \usepackage{latexsym}
 \usepackage{usebib}
+\usepackage{hyperref}
 \bibinput{acl2021}
 \renewcommand{\UrlFont}{\ttfamily\small}
 
@@ -45,7 +46,7 @@
 \author{Michael Miller and Kurt Tuohy \\
   \texttt{\{msmille3, ktuohy\}@illinois.edu}
   \\[2em]
-  Presentation link: TBD\url{} \\
+  Presentation link: TODO\url{} \\
   Code link: \url{https://github.com/mich1eal/cs598_dl4hc}} 
 
 \begin{document}
@@ -57,23 +58,23 @@
 
 \section{Introduction}
 
-Most text written by patients in psychological care is only interpreted by human therapists \citep{burger_2021}. This makes sense because errors in interpretation can result in loss of patient trust, resulting in a lower quality of care. Despite this risk, natural language processioning (NLP) could be used as a powerful aid for healthcare providers. In their paper, \citeauthor{burger_2021} begin to explore this space, seeking to discover whether or not NLP techniques can classify patient writing at all.
+The majority of text written by patients in psychological care is only interpreted by human therapists \citep{burger_2021}. Errors in interpretation can result in loss of patient trust, resulting in a lower quality of care. Despite this risk, natural language processioning (NLP) could be used as a powerful aid for healthcare providers. In their paper, \citeauthor{burger_2021} begin to explore this space, seeking to discover whether or not NLP techniques can classify patient writing at all.
 
-A useful cognitive therapy exercise involves having patients identify the thoughts that underlie their reactions to potentially distressing situations. \citeauthor{burger_2021} recruited online participants to participate in this exercise. The authors then attempted to classify these thought records into schemas. "Schemas" refer to core beliefs that function as the infrastructure to one's views of the world and one's relationship to it. A standard set of schemas defined by \citeauthor{millings_2015} was used. A team of psychologists generated truth data by manually evaluating patient text against the schemas. 
+A useful cognitive therapy exercise involves having patients identify the thoughts that underlie their reactions to potentially distressing situations. \citeauthor{burger_2021} recruited online participants to participate in this exercise. The authors then attempted to classify these thought records into schemas. ``Schemas" refer to core beliefs that function as the infrastructure to one's views of the world and one's relationship to it. A standard set of schemas defined by \citeauthor{millings_2015} was used. A team of psychologists generated truth data by manually evaluating patient text against the schemas. 
 
-\citeauthor{burger_2021} establish a baseline for applying NLP to cognitive therapy. The authors intend for future researchers to leverage their paper and data to continue to explore applications of NLP to this field. In this paper, we verify the results of \citeauthor{burger_2021}, and implement several design modifications. We demonstrate that a preprossing schema which minimizes data loss, paired with state-of-the-art NLP models yield improved results. 
+\citeauthor{burger_2021} establish a baseline for applying NLP to cognitive therapy. They intend for future researchers to leverage their paper and data to continue to explore applications of NLP in this field. In this paper, we verify the results of \citeauthor{burger_2021}, and implement several design modifications as further studies. 
 
 \section{Scope of reproducibility}
 
 In this paper, we test the central hypothesis of \citeauthor{burger_2021}. We verify that schemas can be automatically predicted from patient thought records, and that this can be done with accuracy greater than random chance.
 
 In particular, we re-implement four models used in the paper:
-\begin{itemize}
+\begin{enumerate}
     \item k-nearest neighbors (classifier and regression algorithms)
     \item Support vector machines (classifier and regression algorithms)
     \item Multi-label LSTM, i.e. a single model to output predictions for all schemas (regression algorithm)
     \item Per-schema LSTMs, i.e. one LSTM for each schema (classification algorithm)
-\end{itemize}
+\end{enumerate}
 
 In order to generate comparable results, we adopt a number of the design choices of \citeauthor{burger_2021}. We use pre-trained GLoVE embeddings \citep{pennington_2014} in all of the above models. 
 
@@ -82,36 +83,34 @@ We also measure model performance using Spearman's rank-order correlation betwee
 \subsection{Addressed claims from the original paper}
 Because of our similar design, we expect to obtain similar results to \citeauthor{burger_2021}. In particular, we will verify the following three claims:
 \begin{itemize}
-    \item Per-schema LSTMs outperform other tested models on all schemas except "power and control" and "meta-cognition"
-    \item Regression models outperform classifiers on the "power and control" schema
-    \item Classifiers outperform regression models on the "health" schema
+    \item Per-schema LSTMs outperform other tested models on all schemas except ``power and control" and ``meta-cognition"
+    \item Regression models outperform classifiers on the ``power and control" schema
+    \item Classifiers outperform regression models on the ``health" schema
 \end{itemize}
 
 \section{Methodology}
 \subsection{Model descriptions}
-k-nearest neighbors (classifier and regression algorithms)
+\subsubsection{K-nearest Neighbors}
 
-
+\subsubsection{Support Vector Machine
 Support vector machines (classifier and regression algorithms)
 
+\subsubsection{Multi-label LSTM}
 Multi-label LSTM, i.e. a single model to output predictions for all schemas (regression algorithm)
 A single-direction Long Short Term Memory (LSTM) Recurrant Neural Network (RNN) was implemented with 100 parameters in its hidden state. The model also included an embedding layer (using GLoVE embeddings). A single fully connected layer was used to reduced the LSTM output to the 9 classes. ReLU was used as an activate function. A softmax function was applied to view the outputs as probabilities. 
 
 The model was trained using cross entropy loss with the Adam optimizer. 
 
-Per-schema LSTMs, i.e. one LSTM for each schema (classification algorithm)
-The same architecture 
-
-
-Describe the models used in the original paper, including the architecture, learning objective and the number of parameters.
+\subsubsection{Per-schema LSTMs}
+A total of nine models were trained, one for each schema. Model architecture is similar to the LSTM defined above, with some differences. Namely: asdlkjfa. 
 
 \subsection{Data descriptions}
 The data used in the original paper is available online\citep{burger_2021_data}. The data is referenced at multiple phases: 
-\begin{itemize}
+\begin{enmuerate}
     \item Fully raw - data directly pulled from the authors' survey. This data contains sensitive information and is not published. 
     \item Anonymized raw - data that has been anonymized. This data is otherwise in its original form
     \item Prepossessed - data has been normalized, spell-checked, stripped of common words, and split into test/validation/train sets. 
-\end{itemize}
+\end{enumerate}
 
 Dataset #3 was used to recreate authors' original results. By taking advantage of the authors' preprocessing, fewer confounding variables will exist in the output. 
 
@@ -127,16 +126,17 @@ The authors' code is available in its entirety online \citep{burger_2021_data}. 
 
 The codebase of this paper is available on GIT REPO. All scripting code is written in Python. A number of python modules were used, in particular, we used pyTorch as our primary deep learning module. A full list of Python module dependencies in available in the repository. 
 
-Code was executed on machines running Windows 10 using Python 3.10. GPUs were deemed unnecessary for training REF COM REQS. 
+Code was executed on machines running Windows 10 using Python 3.10. GPUs were deemed unnecessary for training (see \nameref{comp_reqs}). 
 
 During implementation, a number of documentation sources were reviewed. These include documentation for individual Python modules, online tutorials and forums, and course material from this and other classes.  
 
 \subsection{Computational requirements}
+\label{comp_reqs}
 
 In our proposal, we stated that a relatively small dataset (5747 utterances), and relatively simple models were used. 
 The largest time requirements of \citet{burger_2021} exist because they trained hundreds of RNN models to decrease the role of chance in the final results. We planned to reduce the number of models trained while still confirming key results, if computation time became prohibitive. As such, we planned execution using standard computers without access to GPUs, TPUs, or computational clusters. 
 
-In general, this approach appears to be succeeding. Training an individual RNN takes on the order of 10 minutes of runtime on a conventional CPU. This performance is satisfactory for development and evaluation. Final model evaluation may be run overnight but is not expected to become an inhibiting factor. 
+In general, this approach appears to be succeeding. Training an individual RNN takes on the order of 10 minutes of runtime on a conventional CPU. This performance is satisfactory for development and validation. Final model evaluation may be run overnight but is not expected to become an inhibiting factor. 
 
 As models are finalized, code will be added to capture more accurate metrics about runtime to be documented in the final report. 
 
@@ -145,13 +145,14 @@ The authors' two RNN models have been implemented. The initial implementation ma
 
 Additionally, the authors other models will be implemented and added to the table below. 
 
-Our further research will be added in NEXT SECTION 
+Our further research will be added in \nameref{further_studies}. 
 
 \subsection{Hypothesis 1: automatic schema prediction}
 
 Author score, our score 
 
-\subsection{Further results}
+\subsection{Further studies}
+\label{further_studies}
 
 We plan to conduct the following additional research, to be further defined and finalized in with our final submission. 
 
