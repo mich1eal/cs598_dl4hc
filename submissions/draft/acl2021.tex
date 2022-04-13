@@ -47,7 +47,7 @@
   \texttt{\{msmille3, ktuohy\}@illinois.edu}
   \\[2em]
   Presentation link: TODO\url{} \\
-  Code link: \url{https://github.com/mich1eal/cs598_dl4hc}} 
+  Code repository: \url{https://github.com/mich1eal/cs598_dl4hc} \citep{cs598_repo}
 
 \begin{document}
 \maketitle
@@ -70,7 +70,7 @@ In this paper, we test the central hypothesis of \citeauthor{burger_2021}. We ve
 
 In particular, we re-implement four models used in the paper:
 \begin{enumerate}
-    \item k-nearest neighbors (classifier and regression algorithms)
+    \item K-nearest neighbors (classifier and regression algorithms)
     \item Support vector machines (classifier and regression algorithms)
     \item Multi-label LSTM, i.e. a single model to output predictions for all schemas (regression algorithm)
     \item Per-schema LSTMs, i.e. one LSTM for each schema (classification algorithm)
@@ -82,11 +82,11 @@ We also measure model performance using Spearman's rank-order correlation betwee
 
 \subsection{Addressed claims from the original paper}
 Because of our similar design, we expect to obtain similar results to \citeauthor{burger_2021}. In particular, we will verify the following three claims:
-\begin{itemize}
+\begin{enumerate}
     \item Per-schema LSTMs outperform other tested models on all schemas except ``power and control" and ``meta-cognition"
     \item Regression models outperform classifiers on the ``power and control" schema
     \item Classifiers outperform regression models on the ``health" schema
-\end{itemize}
+\end{enumerate}
 
 \section{Methodology}
 \subsection{Model descriptions}
@@ -105,16 +105,18 @@ The model was trained using cross entropy loss with the Adam optimizer.
 A total of nine models were trained, one for each schema. Model architecture is similar to the LSTM defined above, with some differences. Namely: asdlkjfa. 
 
 \subsection{Data descriptions}
-The data used in the original paper is available online\citep{burger_2021_data}. The data is referenced at multiple phases: 
-\begin{enmuerate}
+The data used in the original paper is available online \citep{burger_2021_data}. The data is referenced at multiple phases: 
+\begin{enumerate}
     \item Fully raw - data directly pulled from the authors' survey. This data contains sensitive information and is not published. 
     \item Anonymized raw - data that has been anonymized. This data is otherwise in its original form
+    \label{anon_raw}
     \item Prepossessed - data has been normalized, spell-checked, stripped of common words, and split into test/validation/train sets. 
+    \label{preprocess}
 \end{enumerate}
 
-Dataset #3 was used to recreate authors' original results. By taking advantage of the authors' preprocessing, fewer confounding variables will exist in the output. 
+\ref{anon_raw} was used to recreate authors' original results. By taking advantage of the authors' preprocessing, fewer confounding variables will exist in the output. 
 
-Dataset #2 was used for additional studies. It is hypothesized that keeping common words in the data may improve performance, especially when using larger, more expressive models. 
+\ref{preprocess} was used for additional studies. It is hypothesized that keeping common words in the data may improve performance, especially when using larger, more expressive models. 
 
 \subsection{Hyperparameters}
 For their RNN models, \citeauthor{burger_2021} conducted a large parameter sweep to optimize hyperparameters. As discussed in SECTION this paper seeks to verify the papers results. As a result, an additional hyperparameter sweet will not be conducted to verify the papers results. The papers hyperparameters were lifted from their code and recycled. 
@@ -124,7 +126,7 @@ For additional studies, hyperparameters were selected using a hyperparameter swe
 \subsection{Implementation}
 The authors' code is available in its entirety online \citep{burger_2021_data}. While the authors' code was referenced, the code for this paper is original. 
 
-The codebase of this paper is available on GIT REPO. All scripting code is written in Python. A number of python modules were used, in particular, we used pyTorch as our primary deep learning module. A full list of Python module dependencies in available in the repository. 
+The codebase of this paper is available online \citep{cs598_repo}. All scripting code is written in Python. A number of python modules were used, in particular, we used pyTorch as our primary deep learning module. A full list of Python module dependencies in available in the repository. 
 
 Code was executed on machines running Windows 10 using Python 3.10. GPUs were deemed unnecessary for training (see \nameref{comp_reqs}). 
 
