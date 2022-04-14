@@ -127,9 +127,12 @@ class CognitiveDataset(torch.utils.data.Dataset):
 
         for utterance in self.utterances:
             token_list.extend(utterance)
+        
+        #note that torchtext.vocab.vocab works for chars. To work with strings, 
+        # add double nested list 
+        token_list_list = [[token] for token in token_list]
             
-            
-        self.vocab = torchtext.vocab.build_vocab_from_iterator(token_list, 
+        self.vocab = torchtext.vocab.build_vocab_from_iterator(token_list_list, 
                            max_tokens=self.vocab_size,
                            specials=[PAD, END, UNK])
         self.vocab.set_default_index(self.vocab[UNK])
