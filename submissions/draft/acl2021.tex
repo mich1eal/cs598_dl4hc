@@ -18,6 +18,7 @@
 \usepackage{times}
 \usepackage{latexsym}
 \usepackage{usebib}
+\usepackage{hyperref}
 \bibinput{acl2021}
 \renewcommand{\UrlFont}{\ttfamily\small}
 
@@ -42,11 +43,11 @@
 
 \title{CS598 DL4HC Reproducibility Project Proposal}
 
-\author{Michael Miller and Kurt Tuohy \\
+\author{Michael Miller and Kurt Tuohy\\
   \texttt{\{msmille3, ktuohy\}@illinois.edu}
   \\[2em]
-  Presentation link: TBD\url{} \\
-  Code link: \url{https://github.com/mich1eal/cs598_dl4hc}} 
+  Presentation link: TODO\url{} \\
+  Code repository: \url{https://github.com/mich1eal/cs598_dl4hc} \citep{cs598_repo}}
 
 \begin{document}
 \maketitle
@@ -57,120 +58,126 @@
 
 \section{Introduction}
 
-\citeauthor{burger_2021} found that most text written by patients in psychological care is only interpreted by human therapists. The authors found few instances of automated processing of such text. This is understandable since misinterpretation could lead to a loss of patient trust, but this situation has left therapists without potentially valuable assistance.
+The majority of text written by patients in psychological care is only interpreted by human therapists \citep{burger_2021}. Errors in interpretation can result in loss of patient trust, resulting in a lower quality of care. Despite this risk, natural language processioning (NLP) could be used as a powerful aid for healthcare providers. In their paper, \citeauthor{burger_2021} begin to explore this space, seeking to discover whether or not NLP techniques can classify patient writing at all.
 
-As they were beginning from ground zero, the authors conducted an experiment to determine whether NLP techniques could classify patient writing at all.
+A useful cognitive therapy exercise involves having patients identify the thoughts that underlie their reactions to potentially distressing situations. \citeauthor{burger_2021} recruited online participants to participate in this exercise. The authors then attempted to classify these thought records into schemas. ``Schemas" refer to core beliefs that function as the infrastructure to one's views of the world and one's relationship to it. A standard set of schemas defined by \citeauthor{millings_2015} was used. A team of psychologists generated truth data by manually evaluating patient text against the schemas. 
 
-For patients in cognitive therapy, one useful exercise is to identify the thoughts that underlie their reactions to potentially distressing situations. The authors recruited participants to record the thoughts behind their reactions to a set of situations, such as not being acknowledged by an acquaintance.
-
-The authors then attempted to classify these thought records into schemas. "Schemas" refer to core beliefs that function as the infrastructure to one's views of the world and one's relationship to it. \cite{burger_2021} used schema classifications based on those used by \citeauthor{millings_2015}. The researchers established baseline results for future investigators to improve upon.
+\citeauthor{burger_2021} establish a baseline for applying NLP to cognitive therapy. They intend for future researchers to leverage their paper and data to continue to explore applications of NLP in this field. In this paper, we verify the results of \citeauthor{burger_2021}, and implement several design modifications as further studies. 
 
 \section{Scope of reproducibility}
 
-We've chosen to test the paper's central hypothesis: that schemas can be automatically derived from patient thought records, and that this can be done with accuracy greater than random chance.
+In this paper, we test the central hypothesis of \citeauthor{burger_2021}. We verify that schemas can be automatically predicted from patient thought records, and that this can be done with accuracy greater than random chance.
 
-The paper used GLoVE embeddings to encode thought records. The researchers tested these with four types of models:
-\begin{itemize}
-    \item k-nearest neighbors (classifier + regression algorithms)
-    \item Support vector machines (classifier + regression algorithms)
+In particular, we re-implement four models used in the paper:
+\begin{enumerate}
+    \item K-nearest neighbors (classifier and regression algorithms)
+    \item Support vector machines (classifier and regression algorithms)
     \item Multi-label LSTM, i.e. a single model to output predictions for all schemas (regression algorithm)
     \item Per-schema LSTMs, i.e. one LSTM for each schema (classification algorithm)
-\end{itemize}
+\end{enumerate}
 
-To quantify and compare model performance, the researchers used Spearman's rank-order correlation between predictions and ground truth. The researchers established ground truth by rating how well each thought record represented each schema on a scale of 0 to 3, where 0 indicated "no correspondence" and 3 indicated "complete correspondence".
+In order to generate comparable results, we adopt a number of the design choices of \citeauthor{burger_2021}. We use pre-trained GLoVE embeddings \citep{pennington_2014} in all of the above models. 
 
-The researchers found that their per-schema LSTMs outperformed the other models on all schemas except two: "power and control" and "meta-cognition". Those two schemas have low numbers of associated thought records.
-
-The researchers also found that their regression models performed better with the "power and control" schema, while the classification models performed better with "health".
+We also measure model performance using Spearman's rank-order correlation between predictions and ground truth. 
 
 \subsection{Addressed claims from the original paper}
-
-We test the three claims above:
-\begin{itemize}
-    \item Per-schema LSTMs outperform other tested models on all schemas except "power and control" and "meta-cognition"
-    \item Regression models outperform classifiers on the "power and control" schema
-    \item Classifiers outperform regression models on the "health" schema
-\end{itemize}
+Because of our similar design, we expect to obtain similar results to \citeauthor{burger_2021}. In particular, we will verify the following three claims:
+\begin{enumerate}
+    \item Per-schema LSTMs outperform other tested models on all schemas except ``Power and Control" and ``Meta-Cognition". For example, per-schema RNNs achieve a Spearmans' r of 0.76 on the Competence schema (with 95\% confidence interval of [0.72, 0.79]), with kNN classifiers giving the next highest Spearman's r at 0.69 [0.64, 0.73]. On the Meta-Cognition schema, per-schema RNNs only achieve r of -0.01 [-0.01, 0.00], while multi-label RNNs achieve 0.11 [0.06, 0.14].
+    \item Each regression model outperforms its corresponding classifier on the ``Power and Control" schema. For example, kNN for regression achieves r 0.23 [0.17, 0.27], while the kNN classifier gives 0.11 [0.02, 0.18].
+    \item Each classifier outperforms the corresponding regression model on the ``Health" schema. The closest-scoring pair is the multi-label RNN classifier with 0.31 [0.27, 0.34], and the per-schema RNN regressor with 0.28 [0.20, 0.35].
+\end{enumerate}
 
 \section{Methodology}
-The authors' code is available in its entirety online \citep{burger_2021_data}. While the code was used as a reference, it was not directly copied. 
-
-An additional code repository was created at github. An environment was selected using Windows 10 and Python 3.10. GPUs were not used for training. 
-
-In this section you explain your approach -- did you use the author's code, did you aim to re-implement the approach from the paper description? Summarize the resources (code, documentation, GPUs) that you used. 
-
 \subsection{Model descriptions}
-Describe the models used in the original paper, including the architecture, learning objective and the number of parameters.
+\subsubsection{K-nearest Neighbors}
+
+\subsubsection{Support Vector Machine}
+Support vector machines (classifier and regression algorithms)
+
+\subsubsection{Multi-label LSTM}
+Multi-label LSTM, i.e. a single model to output predictions for all schemas (regression algorithm)
+A single-direction Long Short Term Memory (LSTM) Recurrant Neural Network (RNN) was implemented with 100 parameters in its hidden state. The model also included an embedding layer (using GLoVE embeddings). A single fully connected layer was used to reduced the LSTM output to the 9 classes. ReLU was used as an activate function. A softmax function was applied to view the outputs as probabilities. 
+
+The model was trained using cross entropy loss with the Adam optimizer. 
+
+\subsubsection{Per-schema LSTMs}
+A total of nine models were trained, one for each schema. Model architecture is similar to the LSTM defined above, with some differences. Namely: asdlkjfa. 
 
 \subsection{Data descriptions}
-The data used in the original paper is available online\citep{burger_2021_data}. The raw data was not published due to privacy concerns, however anonymized data is available. The processed data was retrieved and used in this experiment. 
+The data used in the original paper is available online \citep{burger_2021_data}. The data is referenced at multiple phases: 
+\begin{enumerate}
+    \item Fully raw - data directly pulled from the authors' survey. This data contains sensitive information and is not published. 
+    \item Anonymized raw - data that has been anonymized. This data is otherwise in its original form
+    \label{anon_raw}
+    \item Prepossessed - data has been normalized, spell-checked, stripped of common words, and split into test/validation/train sets. 
+    \label{preprocess}
+\end{enumerate}
 
-Describe the datasets you used and how you obtained them. 
+Dataset \ref{anon_raw} was used to recreate authors' original results. By taking advantage of the authors' preprocessing, fewer confounding variables will exist in the output. 
+
+Dataset \ref{preprocess} was used for additional studies. It is hypothesized that keeping common words in the data may improve performance, especially when using larger, more expressive models. 
 
 \subsection{Hyperparameters}
-Especially for their RNN model, \citeauthor{burger_2021} conducted a large parameter sweep to optimize their results. In an effort to improve efficiency, only the best three results were verified. 
+For their RNN models, \citeauthor{burger_2021} conducted a large parameter sweep to optimize hyperparameters. As discussed in SECTION this paper seeks to verify the papers results. As a result, an additional hyperparameter sweet will not be conducted to verify the papers results. The papers hyperparameters were lifted from their code and recycled. 
 
-
-Describe how you set the hyperparameters and what the source was for their value (e.g. paper, code or your guess). 
+For additional studies, hyperparameters were selected using a hyperparameter sweep. 
 
 \subsection{Implementation}
-Describe whether you use the existing code or write your own code, with the link to the code. Note that the github repo you link to should be public and have a clear documentation.
+The authors' code is available in its entirety online \citep{burger_2021_data}. While the authors' code was referenced, the code for this paper is original. 
+
+The codebase of this paper is available online \citep{cs598_repo}. All scripting code is written in Python. A number of python modules were used, in particular, we used pyTorch as our primary deep learning module. A full list of Python module dependencies in available in the repository. 
+
+Code was executed on machines running Windows 10 using Python 3.10. GPUs were deemed unnecessary for training (see \nameref{comp_reqs}). 
+
+During implementation, a number of documentation sources were reviewed. These include documentation for individual Python modules, online tutorials and forums, and course material from this and other classes.  
 
 \subsection{Computational requirements}
+\label{comp_reqs}
 
+In our proposal, we stated that a relatively small dataset (5747 utterances), and relatively simple models were used. 
+The largest time requirements of \citet{burger_2021} exist because they trained hundreds of RNN models to decrease the role of chance in the final results. We planned to reduce the number of models trained while still confirming key results, if computation time became prohibitive. As such, we planned execution using standard computers without access to GPUs, TPUs, or computational clusters. 
 
-Provide information on computational requirements for each of your experiments. For example, the number of CPU/GPU hours and memory requirements.
-Mention both your estimation made before running the experiments (i.e. in the proposal) and the actual resources you used to reproducing the experiments. 
-\textbf{\textit{You'll need to think about this ahead of time, and write your code in a way that captures this information so you can later add it to this section.} }
+In general, this approach appears to be succeeding. Training an individual RNN takes on the order of 10 minutes of runtime on a conventional CPU. This performance is satisfactory for development and validation. Final model evaluation may be run overnight but is not expected to become an inhibiting factor. 
+
+As models are finalized, code will be added to capture more accurate metrics about runtime to be documented in the final report. 
 
 \section{Results}
-Start with a high-level overview of your results. Does your work support the claims you listed in section 2.1? Keep this section as factual and precise as possible, reserve your judgement and discussion points for the next ``Discussion'' section. 
+The authors' two RNN models have been implemented. The initial implementation matches within 5. Work will be done to make the results even better. 
 
-Go into each individual result you have, say how it relates to one of the claims, and explain what your result is. Logically group related results into sections. Clearly state if you have gone beyond the original paper to run additional experiments and how they relate to the original claims. 
+Additionally, the authors other models will be implemented and added to the table below. 
 
-Tips 1: Be specific and use precise language, e.g. ``we reproduced the accuracy to within 1\% of reported value, that upholds the paper's conclusion that it performs much better than baselines.'' Getting exactly the same number is in most cases infeasible, so you'll need to use your judgement call to decide if your results support the original claim of the paper. 
+Our further research will be added in \nameref{further_studies}. 
 
-Tips 2: You may want to use tables and figures to demonstrate your results.
+\subsection{Hypothesis 1: automatic schema prediction}
 
-% The number of subsections for results should be the same as the number of hypotheses you are trying to verify.
+Author score, our score 
 
-\subsection{Result 1}
+\subsection{Further studies}
+\label{further_studies}
 
-\subsection{Result 2}
+We plan to conduct the following additional research, to be further defined and finalized in with our final submission. 
 
-\subsection{Additional results not present in the original paper}
+Scenario 1. We us the authors RNN models with the following modifications. We leave all words in during preprocessing. 
 
-Describe any additional experiments beyond the original paper. This could include experimenting with additional datasets, exploring different methods, running more ablations, or tuning the hyperparameters. For each additional experiment, clearly describe which experiment you conducted, its result, and discussions (e.g. what is the indication of the result).
+Scenario 2. Scenario 1 but we also use BERT 
+
+Scores
 
 \section{Discussion}
-
-Describe larger implications of the experimental results, whether the original paper was reproducible, and if it wasn’t, what factors made it irreproducible. 
-
-Give your judgement on if you feel the evidence you got from running the code supports the claims of the paper. Discuss the strengths and weaknesses of your approach -- perhaps you didn't have time to run all the experiments, or perhaps you did additional experiments that further strengthened the claims in the paper.
-
+TODO
 \subsection{What was easy}
-Describe which parts of your reproduction study were easy. E.g. was it easy to run the author's code, or easy to re-implement their method based on the description in the paper. The goal of this section is to summarize to the reader which parts of the original paper they could easily apply to their problem. 
-
-Tips: Be careful not to give sweeping generalizations. Something that is easy for you might be difficult to others. Put what was easy in context and explain why it was easy (e.g. code had extensive API documentation and a lot of examples that matched experiments in papers). 
-
+TODO
 \subsection{What was difficult}
-Describe which parts of your reproduction study were difficult or took much more time than you expected. Perhaps the data was not available and you couldn't verify some experiments, or the author's code was broken and had to be debugged first. Or, perhaps some experiments just take too much time/resources to run and you couldn't verify them. The purpose of this section is to indicate to the reader which parts of the original paper are either difficult to re-use, or require a significant amount of work and resources to verify. 
-
-Tips: Be careful to put your discussion in context. For example, don't say ``the math was difficult to follow,'' say ``the math requires advanced knowledge of calculus to follow.'' 
-
+TODO
 \subsection{Recommendations for reproducibility}
-
-Describe a set of recommendations to the original authors or others who work in this area for improving reproducibility.
-
+TODO
 \section{Communication with original authors}
-Document the extent of (or lack of) communication with the original authors. To make sure the reproducibility report is a fair assessment of the original research we recommend getting in touch with the original authors. You can ask authors specific questions, or if you don't have any questions you can send them the full report to get their feedback.
-
-
+TODO
 \bibliographystyle{acl_natbib}
 \bibliography{acl2021}
 
 %\appendix
-
 
 
 \end{document}
