@@ -91,6 +91,9 @@ Because of our similar design, we expect to obtain similar results to \citeautho
 \section{Methodology}
 \subsection{Model descriptions}
 \subsubsection{K-nearest Neighbors}
+\citeauthor{burger_2021} generated kNN models for selected values of k from 2 to 100. As a distance metric, these models used the cosine distance between utterance embeddings. k=4 gave the best results for classification models, and k=5 was best for regression models.
+
+To generate predictions, the classification models computed the statistical mode of the k nearest neighbors' labels. The regression models used the average of the nearest neighbors' labels.
 
 \subsubsection{Support Vector Machine}
 Support vector machines (classifier and regression algorithms)
