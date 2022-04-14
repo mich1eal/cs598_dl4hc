@@ -98,9 +98,13 @@ Support vector machines (classifier and regression algorithms)
 \subsubsection{Multi-label LSTM}
 Multi-label LSTM, i.e. a single model to output predictions for all schemas (regression algorithm):
 
-For this type, the researchers obtained the best performance from a bidirectional Long Short Term Memory (LSTM) Recurrent Neural Network (RNN) with 100 parameters in its hidden state. The model also included an embedding layer, which used GLoVE embeddings on a per-word basis. Following the LSTM, a 10\% dropout layer fed a single fully connected layer, which reduced the output to the 9 classes. Finally, a sigmoid activation function output per-class probabilities. 
+For this type, the researchers obtained the best performance from a bidirectional Long Short Term Memory (LSTM) Recurrent Neural Network (RNN) with 100 parameters in its hidden state.
 
-The model was trained using cross entropy loss with the Adam optimizer. 
+The model also included an embedding layer, which used GLoVE embeddings on a per-word basis. Following the LSTM, a 10\% dropout layer fed a single fully connected layer, which reduced the output to the 9 classes. Finally, a sigmoid activation function output per-class probabilities. 
+
+The model was trained using cross entropy loss with the Adam optimizer and a default learning rate of 0.001.
+
+The number of trainable parameters was 162,609. The embedding involved 262,400 non-trainable parameters, for a total of 425,009.
 
 \subsubsection{Per-schema LSTMs}
 A total of nine models were trained, one for each schema. Model architecture is similar to the LSTM defined above, with the following differences:
@@ -108,6 +112,8 @@ A total of nine models were trained, one for each schema. Model architecture is 
 Instead of 9 output classes, each model used 4. This matched the researcher's 0-3 scale for rating thought records against schemas, where 0 meant "no correspondence with schema" and 3 meant "complete correspondence with schema".
 
 Instead of a sigmoid activation, these models used softmax, since points on the rating scale are mutually exclusive.
+
+Each per-schema model had 161,604 trainable parameters, with the same number of non-trainable parameters as the multi-label model. The total was 424,004.
 
 \subsection{Data descriptions}
 The data used in the original paper is available online \citep{burger_2021_data}. The data is referenced at multiple phases: 
