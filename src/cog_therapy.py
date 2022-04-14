@@ -134,7 +134,7 @@ class CognitiveDataset(torch.utils.data.Dataset):
             
         self.vocab = torchtext.vocab.build_vocab_from_iterator(token_list_list, 
                            max_tokens=self.vocab_size,
-                           specials=[PAD, END, UNK])
+                           specials=[UNK, END, PAD])
         self.vocab.set_default_index(self.vocab[UNK])
 
     def convert_text(self):
@@ -238,7 +238,11 @@ test_set = CognitiveDataset(test_frame,
                              embed_mode=None)
 
 #Load GLoVe embeddings
-embedding_glove = GloVe(name='6B', dim=100)
+glove = GloVe(name='6B', dim=100)
+
+#Get the relevent rows in GLoVE, and match their indices with
+#the indices in our vocab https://github.com/pytorch/text/issues/1350
+embed_vec = glove.get_vecs_by_tokens(train_set.vocab.get_itos())
 
 train_loader = create_dataloader(train_set, shuffle=True)
 val_loader = create_dataloader(train_set, shuffle=False)
@@ -290,10 +294,16 @@ class MultiLabelRNN(nn.Module):
     Will need to replace this with GLoVE embeddings.
     '''
     
-    def __init__(self, vocab_size, embed_size=100, hidden_size=100, dropout=0.5, num_labels=len(SCHEMAS)):
+    def __init__(self, vocab_size, embeddings=None, pad_idx=0, hidden_size=100, dropout=0.5, num_labels=len(SCHEMAS)):
         super().__init__()
+                
+        if embeddings is not None:
+            embed_size = len(embeddings[0])
+            self.embedding = nn.Embedding.from_pretrained(embeddings, padding_idx=pad_idx)
+        else:
+            embed_size = 100
+            self.embedding = nn.Embedding(vocab_size, embed_size, padding_idx=pad_idx)
         
-        self.embedding = nn.Embedding(vocab_size, embed_size)
         self.lstm = nn.LSTM(input_size=embed_size, hidden_size=hidden_size, num_layers=1,
                             batch_first=True, bidirectional=True)
         self.do = nn.Dropout(dropout)
@@ -342,8 +352,14 @@ def rnn_grid_search():
 
 # Define starter multi-label RNN, plus its loss function and optimizer.
 # Start with the settings that gave the best results for the researchers.
+vocab_size = len(train_set.vocab)
 
-mlm_starter_RNN = MultiLabelRNN(2000, embed_size=100, hidden_size=100, dropout=0.1, num_labels=len(SCHEMAS))
+mlm_starter_RNN = MultiLabelRNN(vocab_size, 
+                                embeddings=embed_vec, 
+                                pad_idx=train_set.vocab[PAD],
+                                hidden_size=100, 
+                                dropout=0.1, 
+                                num_labels=len(SCHEMAS))
 loss_func = nn.BCELoss()  # Hopefully this gives something like a categorical cross-entropy loss
 optimizer = torch.optim.Adam(mlm_starter_RNN.parameters(), lr=0.01)  # Using Keras' default learning rate, which is probably what the researchers used
 
