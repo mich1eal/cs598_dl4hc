@@ -85,7 +85,7 @@ Because of our similar design, we expect to obtain similar results to \citeautho
 \begin{enumerate}
     \item Per-schema LSTMs outperform other tested models on all schemas except ``Power and Control" and ``Meta-Cognition". For example, per-schema RNNs achieve a Spearmans' r of 0.76 on the Competence schema (with 95\% confidence interval of [0.72, 0.79]), with kNN classifiers giving the next highest Spearman's r at 0.69 [0.64, 0.73]. On the Meta-Cognition schema, per-schema RNNs only achieve r of -0.01 [-0.01, 0.00], while multi-label RNNs achieve 0.11 [0.06, 0.14].
     \item Each regression model outperforms its corresponding classifier on the ``Power and Control" schema. For example, kNN for regression achieves r 0.23 [0.17, 0.27], while the kNN classifier gives 0.11 [0.02, 0.18].
-    \item Each classifier outperforms the corresponding regression model on the ``Health" schema. The closest-scoring pair was the multi-label RNN classifier with 0.31 [0.27, 0.34], and the per-schema RNN regressor with 0.28 [0.20, 0.35].
+    \item Each classifier outperforms the corresponding regression model on the ``Health" schema. The closest-scoring pair is the multi-label RNN classifier with 0.31 [0.27, 0.34], and the per-schema RNN regressor with 0.28 [0.20, 0.35].
 \end{enumerate}
 
 \section{Methodology}
