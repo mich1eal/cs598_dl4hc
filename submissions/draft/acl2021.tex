@@ -97,7 +97,7 @@ Support vector machines (classifier and regression algorithms)
 
 \subsubsection{Multi-label LSTM}
 Multi-label LSTM, i.e. a single model to output predictions for all schemas (regression algorithm)
-A single-direction Long Short Term Memory (LSTM) Recurrant Neural Network (RNN) was implemented with 100 parameters in its hidden state. The model also included an embedding layer (using GLoVE embeddings). A single fully connected layer was used to reduced the LSTM output to the 9 classes. ReLU was used as an activate function. A softmax function was applied to view the outputs as probabilities. 
+A single-direction Long Short Term Memory (LSTM) Recurrent Neural Network (RNN) was implemented with 100 parameters in its hidden state. The model also included an embedding layer (using GLoVE embeddings). A single fully connected layer was used to reduced the LSTM output to the 9 classes. A sigmoid activation function output per-class probabilities. 
 
 The model was trained using cross entropy loss with the Adam optimizer. 
 
