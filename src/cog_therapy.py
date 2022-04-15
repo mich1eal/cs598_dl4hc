@@ -11,6 +11,11 @@ Data repo: https://github.com/mich1eal/cs598_dl4hc
 For dependencies, and data acquisition instructions, please see this repository's readme
 """
 
+# To track RAM and CPU usage
+import time
+import psutil
+init_ram_used = psutil.virtual_memory()[3]
+
 #from collections import Counter
 import pandas as pd
 import numpy as np
@@ -26,6 +31,7 @@ from torchtext.vocab import GloVe
 from sklearn.metrics import mean_absolute_error
 # To compute model goodness-of-fit
 from scipy.stats import spearmanr
+# Store initial RAM usage to help tare final usage
 
 # Set seed. Copied from HW3 RNN notebook.
 seed = 24
@@ -333,8 +339,10 @@ mlm_starter_RNN = MultiLabelRNN(vocab_size,
                                 hidden_size=100, 
                                 dropout=0.1, 
                                 num_labels=len(SCHEMAS))
-loss_func = nn.BCELoss()  # Hopefully this gives something like a categorical cross-entropy loss
-optimizer = torch.optim.Adam(mlm_starter_RNN.parameters(), lr=0.01)  # Using Keras' default learning rate, which is probably what the researchers used
+# Original Keras model used categorical cross-entropy loss.
+# PyTorch has no exact equivalent. Between BCEWithLogitsLoss and BCELoss, BCELoss gives best results.
+loss_func = nn.BCELoss()  
+optimizer = torch.optim.Adam(mlm_starter_RNN.parameters(), lr=0.001)  # Using Keras' default learning rate, which is probably what the researchers used
 
 # Stock routine to evaluate initial RNN.
 # Taken from HW3. Will replace with skorch functionality.
@@ -406,8 +414,14 @@ def train_rnn(model, train_loader, val_loader, n_epochs=100):
         
 ### Train models
 
+# Start timer for training
+train_start_time = time.time()
+
 # For each epoch, show training loss and validation score (mean absolute error)
 train_rnn(mlm_starter_RNN, train_loader, val_loader)
+
+# Training time in seconds for training
+train_time = time.time() - train_start_time
 
 ### Show model goodness of fit
 
@@ -422,7 +436,16 @@ test_y_hat = mlm_starter_RNN(test_x)
     
 # Get and display goodness of fit for each schema
 test_gof = spearman_r(test_y, test_y_hat.detach().numpy())
+print("\nRNN Multi-Label Model Test Set Goodness of Fit (Spearman r) Per Schema:")
 print(pd.DataFrame(data=test_gof,index=SCHEMAS,columns=['estimate']))
-    
+
+# Display training time in seconds
+print(f"\nTraining time: {train_time} seconds")
+
+# Compute and display RAM usage
+final_ram_used = psutil.virtual_memory()[3]
+script_ram_k_used = (final_ram_used - init_ram_used) / 1024
+print(f"\nRAM used by script: {script_ram_k_used} K")
+
 
 ###### Ablation study 
