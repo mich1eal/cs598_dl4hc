@@ -245,8 +245,8 @@ glove = GloVe(name='6B', dim=100)
 embed_vec = glove.get_vecs_by_tokens(train_set.vocab.get_itos())
 
 train_loader = create_dataloader(train_set, shuffle=True)
-val_loader = create_dataloader(train_set, shuffle=False)
-test_loader = create_dataloader(train_set, shuffle=False)
+val_loader = create_dataloader(val_set, shuffle=False)
+test_loader = create_dataloader(test_set, shuffle=False)
 
 # Routine to generate dataloader
 
