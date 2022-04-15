@@ -58,9 +58,9 @@
 
 \section{Introduction}
 
-The majority of text written by patients in psychological care is only interpreted by human therapists \citep{burger_2021}. Errors in interpretation can result in loss of patient trust, resulting in a lower quality of care. Despite this risk, natural language processioning (NLP) could be used as a powerful aid for healthcare providers. In their paper, \citeauthor{burger_2021} begin to explore this space, seeking to discover whether or not NLP techniques can classify patient writing at all.
+The majority of text written by patients in psychological care is only interpreted by human therapists \citep{burger_2021}. In their paper, \citeauthor{burger_2021} begin to explore the potential of NLP as an aid to cognitive therapy. They seek to determine whether NLP techniques can reliably classify patient writing.
 
-A useful cognitive therapy exercise involves having patients identify the thoughts that underlie their reactions to potentially distressing situations. \citeauthor{burger_2021} recruited online participants to participate in this exercise. The authors then attempted to classify these thought records into schemas. ``Schemas" refer to core beliefs that function as the infrastructure to one's views of the world and one's relationship to it. A standard set of schemas defined by \citeauthor{millings_2015} was used. A team of psychologists generated truth data by manually evaluating patient text against the schemas. 
+A useful cognitive therapy exercise involves having patients identify the thoughts that underlie their reactions to potentially distressing situations. The authors attempt to classify a set of these written thoughts into schemas. ``Schemas" refer to core beliefs that function as the infrastructure to one's views of the world. A standard set of schemas defined by \citeauthor{millings_2015} was used.
 
 \citeauthor{burger_2021} establish a baseline for applying NLP to cognitive therapy. They intend for future researchers to leverage their paper and data to continue to explore applications of NLP in this field. In this paper, we verify the results of \citeauthor{burger_2021}, and implement several design modifications as further studies. 
 
@@ -68,7 +68,7 @@ A useful cognitive therapy exercise involves having patients identify the though
 
 In this paper, we test the central hypothesis of \citeauthor{burger_2021}. We verify that schemas can be automatically predicted from patient thought records, and that this can be done with accuracy greater than random chance.
 
-In particular, we re-implement four models used in the paper:
+We re-implement four models used in the paper:
 \begin{enumerate}
     \item K-nearest neighbors (classifier and regression algorithms)
     \item Support vector machines (classifier and regression algorithms)
@@ -83,26 +83,47 @@ We also measure model performance using Spearman's rank-order correlation betwee
 \subsection{Addressed claims from the original paper}
 Because of our similar design, we expect to obtain similar results to \citeauthor{burger_2021}. In particular, we will verify the following three claims:
 \begin{enumerate}
-    \item Per-schema LSTMs outperform other tested models on all schemas except ``Power and Control" and ``Meta-Cognition". For example, per-schema RNNs achieve a Spearmans' r of 0.76 on the Competence schema (with 95\% confidence interval of [0.72, 0.79]), with kNN classifiers giving the next highest Spearman's r at 0.69 [0.64, 0.73]. On the Meta-Cognition schema, per-schema RNNs only achieve r of -0.01 [-0.01, 0.00], while multi-label RNNs achieve 0.11 [0.06, 0.14].
-    \item Each regression model outperforms its corresponding classifier on the ``Power and Control" schema. For example, kNN for regression achieves r 0.23 [0.17, 0.27], while the kNN classifier gives 0.11 [0.02, 0.18].
-    \item Each classifier outperforms the corresponding regression model on the ``Health" schema. The closest-scoring pair is the multi-label RNN classifier with 0.31 [0.27, 0.34], and the per-schema RNN regressor with 0.28 [0.20, 0.35].
+    \item Per-schema LSTMs outperform other tested models on all schemas except ``Power and Control" and ``Meta-Cognition".
+    \item Each regression model outperforms its corresponding classifier on the ``Power and Control" schema.
+    \item Each classifier outperforms the corresponding regression model on the ``Health" schema.
 \end{enumerate}
 
 \section{Methodology}
 \subsection{Model descriptions}
 \subsubsection{K-nearest Neighbors}
+\citeauthor{burger_2021} generated kNN models for selected values of k from 2 to 100. These models used the cosine distance between thought-record embeddings as the distance metric.
+
+To generate predictions, the classification models computed the statistical mode of the k nearest neighbors' labels. The regression models used the average of the nearest neighbors' labels.
+
+k=4 gave the best results for classification models, and k=5 was best for regression models.
 
 \subsubsection{Support Vector Machine}
 Support vector machines (classifier and regression algorithms)
 
 \subsubsection{Multi-label LSTM}
-Multi-label LSTM, i.e. a single model to output predictions for all schemas (regression algorithm)
-A single-direction Long Short Term Memory (LSTM) Recurrant Neural Network (RNN) was implemented with 100 parameters in its hidden state. The model also included an embedding layer (using GLoVE embeddings). A single fully connected layer was used to reduced the LSTM output to the 9 classes. ReLU was used as an activate function. A softmax function was applied to view the outputs as probabilities. 
+Multi-label LSTM, i.e. a single model to output predictions for all schemas (regression algorithm):
 
-The model was trained using cross entropy loss with the Adam optimizer. 
+For this type, the researchers obtained the best performance from a bidirectional Long Short Term Memory (LSTM) Recurrent Neural Network (RNN) with 100 parameters in its hidden state.
+
+The model also included an embedding layer, which used GLoVE embeddings on a per-word basis. Following the LSTM, a 10\% dropout layer fed a single fully connected layer, which reduced the output to the 9 classes. Finally, a sigmoid activation function output per-class probabilities. 
+
+The model was trained using cross entropy loss with the Adam optimizer and a default learning rate of 0.001.
+
+The number of trainable parameters was 162,609. The embedding involved 262,400 non-trainable parameters, for a total of 425,009.
 
 \subsubsection{Per-schema LSTMs}
-A total of nine models were trained, one for each schema. Model architecture is similar to the LSTM defined above, with some differences. Namely: asdlkjfa. 
+A total of nine models were trained, one for each schema. Model architecture is similar to the LSTM defined above, with the following differences:
+
+Instead of 9 output classes, each model used 4. This matched the researcher's 0-3 scale for rating thought records against schemas, where 0 meant "no correspondence with schema" and 3 meant "complete correspondence with schema".
+
+Instead of a sigmoid activation, these models used softmax, since points on the rating scale are mutually exclusive.
+
+Each per-schema model had 161,604 trainable parameters, with the same number of non-trainable parameters as the multi-label model. The total was 424,004.
+
+\subsubsection{Note on embeddings}
+The researchers created custom per-thought-record embeddings for the kNN and SVM models. In contrast, the RNN models used basic per-word GLoVe embeddings as weights.
+
+For the custom embeddings, each word's GLoVe embedding was multiplied by the word's TF-IDF weight. The resulting vector was divided by its 2-norm. Then, for each thought record, the applicable word vectors were summed and averaged. This gave one embedding per thought record.
 
 \subsection{Data descriptions}
 The data used in the original paper is available online \citep{burger_2021_data}. The data is referenced at multiple phases: 
