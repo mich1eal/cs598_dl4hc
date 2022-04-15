@@ -11,22 +11,21 @@ Data repo: https://github.com/mich1eal/cs598_dl4hc
 For dependencies, and data acquisition instructions, please see this repository's readme
 """
 
-from collections import Counter
+#from collections import Counter
 import pandas as pd
 import numpy as np
-import torchtext
-from torchtext.vocab import GloVe
 import torch 
 import torch.nn as nn
 from torch.utils.data import DataLoader
+import torchtext
+from torchtext.vocab import GloVe
 # To help perform hyperparameter grid search
-from skorch import NeuralNetClassifier
-from sklearn.model_selection import GridSearchCV
+#from skorch import NeuralNetClassifier
+#from sklearn.model_selection import GridSearchCV
 # To compute model score on validation set
 from sklearn.metrics import mean_absolute_error
 # To compute model goodness-of-fit
 from scipy.stats import spearmanr
-
 
 # Set seed. Copied from HW3 RNN notebook.
 seed = 24
@@ -189,8 +188,9 @@ class CognitiveDataset(torch.utils.data.Dataset):
         '''
         Return labels as a long vector 
         '''
-        out = torch.FloatTensor(self.labels[idx])
-        return torch.nn.functional.softmax(out, dim=0)
+        return torch.FloatTensor(self.labels[idx])
+        #out = torch.FloatTensor(self.labels[idx])
+        #return torch.nn.functional.softmax(out, dim=0)
 
     def __len__(self):
         '''
@@ -238,17 +238,17 @@ test_set = CognitiveDataset(test_frame,
                              embed_mode=None)
 
 #Load GLoVe embeddings
-glove = GloVe(name='6B', dim=100)
+#glove = GloVe(name='6B', dim=100)
 
 #Get the relevent rows in GLoVE, and match their indices with
 #the indices in our vocab https://github.com/pytorch/text/issues/1350
-embed_vec = glove.get_vecs_by_tokens(train_set.vocab.get_itos())
+embed_vec = embedding_glove.get_vecs_by_tokens(train_set.vocab.get_itos())
 
+# Create dataloaders for our three datasets
 train_loader = create_dataloader(train_set, shuffle=True)
 val_loader = create_dataloader(val_set, shuffle=False)
-test_loader = create_dataloader(test_set, shuffle=False)
-
-# Routine to generate dataloader
+# For test_set, return entire set from dataloader
+test_loader = create_dataloader(test_set, batch_size=test_set.__len__(), shuffle=False)
 
 ###### Evaluation routines
 
@@ -323,33 +323,6 @@ class MultiLabelRNN(nn.Module):
         return label_probs
 
 
-### TO DO
-
-# 0) Create dataloaders for train, validation and test sets
-# 1) Proof of concept -- train multi-label RNN
-# 2) Tune hyperparameters using grid search
-#    Possible ways to do this: https://medium.com/pytorch/accelerate-your-hyperparameter-optimization-with-pytorchs-ecosystem-tools-bc17001b9a49
-#        https://discuss.pytorch.org/t/what-is-the-best-way-to-perform-hyper-parameter-search-in-pytorch/19943/3
-#        https://skorch.readthedocs.io/en/stable/user/quickstart.html
-#        Use skorch package to wrap PyTorch in SciKit-Learn to take advantage of sklearn functionality
-# 3) Get model with best mean absolute error
-# 4) Compute Spearman rank-order correlation between model predictions and ground truth for each schema
-# 5) Train 30 models with same parameters as best model. Report the mean correlations.
-
-# Routine to perform grid search over RNN parameters.
-# Use skorch package to implement grid search.
-
-def rnn_grid_search():
-    
-    # Specs for grid search.
-    # NOTE: this does not include learning rate, optimizer type, or loss function types.
-    params = {'module__hidden_size': [50,100],
-              'module__dropout': [0.1, 0.5],
-              'batch_size': [32, 64],
-              'epochs': [100]}
-    
-    # ...this is only a bare start...continue.
-
 # Define starter multi-label RNN, plus its loss function and optimizer.
 # Start with the settings that gave the best results for the researchers.
 vocab_size = len(train_set.vocab)
@@ -380,8 +353,8 @@ def eval_rnn(model, val_loader):
     '''
     
     model.eval()
-    y_score = torch.Tensor()
-    y_true = torch.LongTensor()
+    y_score = torch.FloatTensor()
+    y_true = torch.FloatTensor()
     for x, y in val_loader:
         y_hat = model(x)
         y_score = torch.cat((y_score, y_hat.detach().to('cpu')), dim=0)
@@ -431,10 +404,25 @@ def train_rnn(model, train_loader, val_loader, n_epochs=100):
         eval_score = eval_rnn(model, val_loader)
         print(f'Validation score: {eval_score}')
         
+### Train models
 
+# For each epoch, show training loss and validation score (mean absolute error)
 train_rnn(mlm_starter_RNN, train_loader, val_loader)
 
+### Show model goodness of fit
 
+# Display Spearman rank-order correlation for each schema between predicted
+# schema correspondences and ground truth.
+# Use test set.
+
+# Get entire processed test data and labels
+test_x, test_y = next(iter(test_loader))
+# Get test predictions
+test_y_hat = mlm_starter_RNN(test_x)
+    
+# Get and display goodness of fit for each schema
+test_gof = spearman_r(test_y, test_y_hat.detach().numpy())
+print(pd.DataFrame(data=test_gof,index=SCHEMAS,columns=['estimate']))
     
 
 ###### Ablation study 
