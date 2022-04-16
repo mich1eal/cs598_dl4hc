@@ -101,7 +101,7 @@ k=4 gave the best results for classification models, and k=5 was best for regres
 Support vector machines (classifier and regression algorithms)
 
 \subsubsection{Multi-label LSTM}
-Multi-label LSTM, i.e. a single model to output predictions for all schemas (regression algorithm):
+A single model was trained to output predictions for all nine schemas.
 
 For this type, the researchers obtained the best performance from a bidirectional Long Short Term Memory (LSTM) Recurrent Neural Network (RNN) with 100 parameters in its hidden state.
 
@@ -129,22 +129,22 @@ For the custom embeddings, each word's GLoVe embedding was multiplied by the wor
 The data used in the original paper is available online \citep{burger_2021_data}. The data is referenced at multiple phases: 
 \begin{enumerate}
     \item Fully raw - data directly pulled from the authors' survey. This data contains sensitive information and is not published. 
-    \item Anonymized raw - data that has been anonymized. This data is otherwise in its original form
+    \item Anonymized raw - data that has been anonymized. This data is otherwise in its original form. It includes participant IDs, the situational scenarios that participants responded to, other thought-record grouping information, and the ground-truth correspondence scores for each schema on a 0-3 scale.
     \label{anon_raw}
-    \item Prepossessed - data has been normalized, spell-checked, stripped of common words, and split into test/validation/train sets. 
+    \item Preprocessed - thought records have been normalized, spell-checked, stripped of common words, and split into test/validation/train sets. Thought records have also been decoupled from contextual information like participant IDs and situational scenarios.
     \label{preprocess}
 \end{enumerate}
 
-Dataset \ref{anon_raw} was used to recreate authors' original results. By taking advantage of the authors' preprocessing, fewer confounding variables will exist in the output. 
+Dataset \ref{preprocess} was used to recreate authors' original results. By taking advantage of the authors' preprocessing, fewer confounding variables will exist in the output. 
 
-Dataset \ref{preprocess} was used for additional studies. It is hypothesized that keeping common words in the data may improve performance, especially when using larger, more expressive models. 
+Dataset \ref{anon_raw} will be used for additional ablations. It is hypothesized that keeping common words in the data may improve performance, especially when using larger, more expressive models. 
 
 \subsection{Hyperparameters}
 For their RNN models, \citeauthor{burger_2021} conducted a large parameter sweep to optimize hyperparameters. It is not our intent to duplicate this effort. We will instead focus on verifying the authors' result using their optimal hyperparameters.
 
 For our ablations, we intend to perform a hyperparameter sweep. 
 
-For the single multi-label model in our draft, we used the author's optimal hyperparameters with the exception of the loss function. The original Keras models used categorical cross entropy, which has no direct pyTorch equivalent. In its place we used binary cross entropy. This gave us better results than BCEWithLogitsLoss, which combines BCE with a sigmoid layer.
+For the single multi-label model in our draft, we used the author's optimal hyperparameters with the exception of the loss function. The original Keras models used categorical cross entropy, which has no direct pyTorch equivalent. In its place we used binary cross entropy (BCELoss). This gave us better results than BCEWithLogitsLoss, which combines BCE with a sigmoid layer.
 
 \subsection{Implementation}
 The authors' code is available in its entirety online \citep{burger_2021_data}. While the authors' code was referenced, the code for this paper is original. 
@@ -163,7 +163,7 @@ The largest time requirements of \citet{burger_2021} exist because they trained 
 
 In general, this approach appears to be succeeding. Training an individual RNN takes 7-10 minutes on a conventional CPU. This performance is satisfactory for development and validation. Final model evaluation may be run overnight but is not expected to become an inhibiting factor. 
 
-The paper's original Jupyter notebook tracked clock time but not CPU usage. Each of their RNNs required about 2.6 minutes to train, which is in the same order of magnitude as our training times.
+The paper's original Jupyter notebook tracked clock time but not CPU usage. Each of their RNNs required about 2.6 minutes to train, which is on the same order of magnitude as our training times.
 
 The script to run our single draft model consumes about 570 MB of RAM, which includes GLoVe embeddings. In comparison, the original notebook consumes about 834 MB before training any models.
 
