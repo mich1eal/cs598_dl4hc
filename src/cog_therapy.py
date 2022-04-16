@@ -195,8 +195,6 @@ class CognitiveDataset(torch.utils.data.Dataset):
         Return labels as a long vector 
         '''
         return torch.FloatTensor(self.labels[idx])
-        #out = torch.FloatTensor(self.labels[idx])
-        #return torch.nn.functional.softmax(out, dim=0)
 
     def __len__(self):
         '''
@@ -313,7 +311,7 @@ class MultiLabelRNN(nn.Module):
                 
         if embeddings is not None:
             embed_size = len(embeddings[0])
-            self.embedding = nn.Embedding.from_pretrained(embeddings, padding_idx=pad_idx)
+            self.embedding = nn.Embedding.from_pretrained(embeddings, padding_idx=pad_idx, freeze=True)
         else:
             embed_size = 100
             self.embedding = nn.Embedding(vocab_size, embed_size, padding_idx=pad_idx)
@@ -330,7 +328,7 @@ class MultiLabelRNN(nn.Module):
         lstm_out, (hidden_state_n, cell_state_n) = self.lstm(embeds)
         #get last layer of output 
         lstm_last = lstm_out[:, -1, :].squeeze(1)
-        
+                
         do_out = self.do(lstm_last)
         label_probs = self.sigmoid(self.fc(do_out))
                 
@@ -348,9 +346,8 @@ mlm_starter_RNN = MultiLabelRNN(vocab_size,
                                 dropout=0.1, 
                                 num_labels=len(SCHEMAS))
 # Original Keras model used categorical cross-entropy loss.
-# PyTorch has no exact equivalent. Between BCEWithLogitsLoss and BCELoss, BCELoss gives best results.
-loss_func = nn.BCELoss()  
-optimizer = torch.optim.Adam(mlm_starter_RNN.parameters(), lr=0.001)  # Using Keras' default learning rate, which is probably what the researchers used
+loss_func = nn.CrossEntropyLoss()  
+optimizer = torch.optim.Adam(mlm_starter_RNN.parameters(), lr=0.002)  # Using Keras' default learning rate, which is probably what the researchers used
 
 # Stock routine to evaluate initial RNN.
 # Taken from HW3. Will replace with skorch functionality.
