@@ -268,18 +268,26 @@ def spearman_r(X, Y):
         X: matrix of predictions, with one column per schema.
         Y: matrix of ground-truth labels, with one column per schema.
     Output:
-        Numpy array of correlation coefficients, one per schema
+        rho: pandas dataframe with three columns:
+                "schema" for schema name,
+                "estimate" for r values, and
+                "p" for p-values.
     '''
     
-    # Initialize array of corr coefficients
+    # Initialize arrays of corr coefficients and p values
     rho_array = np.zeros(X.shape[1])
+    p_array = np.zeros(X.shape[1])
 
     # Compute coefficient over each schema and save
     for schema in range(len(SCHEMAS)):
         rho, p_val = spearmanr(X[:, schema], Y[:, schema])
         rho_array[schema] = rho
+        p_array[schema] = p_val
 
-    return rho_array
+    return pd.DataFrame({
+        "schema": SCHEMAS,
+        "estimate": rho_array.tolist(),
+        "p": p_array.tolist()})
 
 ###### Baseline models
 
@@ -437,7 +445,7 @@ test_y_hat = mlm_starter_RNN(test_x)
 # Get and display goodness of fit for each schema
 test_gof = spearman_r(test_y, test_y_hat.detach().numpy())
 print("\nRNN Multi-Label Model Test Set Goodness of Fit (Spearman r) Per Schema:")
-print(pd.DataFrame(data=test_gof,index=SCHEMAS,columns=['estimate']))
+print(test_gof.to_string(index=False))
 
 # Display training time in seconds
 print(f"\nTraining time: {train_time} seconds")
