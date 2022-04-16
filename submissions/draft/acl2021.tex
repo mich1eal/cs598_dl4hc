@@ -140,9 +140,11 @@ Dataset \ref{anon_raw} was used to recreate authors' original results. By taking
 Dataset \ref{preprocess} was used for additional studies. It is hypothesized that keeping common words in the data may improve performance, especially when using larger, more expressive models. 
 
 \subsection{Hyperparameters}
-For their RNN models, \citeauthor{burger_2021} conducted a large parameter sweep to optimize hyperparameters. It is not our intent to duplicate this effort. We will instead focus on verifying the authors' result with optimal hyperparameters. As a result, an additional hyperparameter sweep will not be conducted. 
+For their RNN models, \citeauthor{burger_2021} conducted a large parameter sweep to optimize hyperparameters. It is not our intent to duplicate this effort. We will instead focus on verifying the authors' result using their optimal hyperparameters.
 
-For additional studies, hyperparameters were selected using a hyperparameter sweep. 
+For our ablations, we intend to perform a hyperparameter sweep. 
+
+For the single multi-label model in our draft, we used the author's optimal hyperparameters with the exception of the loss function. The original Keras models used categorical cross entropy, which has no direct pyTorch equivalent. In its place we used binary cross entropy. This gave us better results than BCEWithLogitsLoss, which combines BCE with a sigmoid layer.
 
 \subsection{Implementation}
 The authors' code is available in its entirety online \citep{burger_2021_data}. While the authors' code was referenced, the code for this paper is original. 
@@ -156,10 +158,16 @@ During implementation, a number of documentation sources were reviewed. These in
 \subsection{Computational requirements}
 \label{comp_reqs}
 
-In our proposal, we stated that a relatively small dataset (5747 utterances), and relatively simple models were used. 
+In our proposal, we stated that a relatively small dataset (5747 thought records) and relatively simple models were used. 
 The largest time requirements of \citet{burger_2021} exist because they trained hundreds of RNN models to decrease the role of chance in the final results. We planned to reduce the number of models trained while still confirming key results, if computation time became prohibitive. As such, we planned execution using standard computers without access to GPUs, TPUs, or computational clusters. 
 
-In general, this approach appears to be succeeding. Training an individual RNN takes on the order of 10 minutes of runtime on a conventional CPU. This performance is satisfactory for development and validation. Final model evaluation may be run overnight but is not expected to become an inhibiting factor. 
+In general, this approach appears to be succeeding. Training an individual RNN takes 7-10 minutes on a conventional CPU. This performance is satisfactory for development and validation. Final model evaluation may be run overnight but is not expected to become an inhibiting factor. 
+
+The paper's original Jupyter notebook tracked clock time but not CPU usage. Each of their RNNs required about 2.6 minutes to train, which is in the same order of magnitude as our training times.
+
+The script to run our single draft model consumes about 570 MB of RAM, which includes GLoVe embeddings. In comparison, the original notebook consumes about 834 MB before training any models.
+
+Based on partial reruns of the paper's original Jupyter notebook, each additional RNN should require about 26 MB. The kNN and SVM models should be smaller yet.
 
 As models are finalized, code will be added to capture more accurate metrics about runtime to be documented in the final report. 
 
