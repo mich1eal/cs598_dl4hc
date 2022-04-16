@@ -254,7 +254,7 @@ embed_vec = embedding_glove.get_vecs_by_tokens(train_set.vocab.get_itos())
 train_loader = create_dataloader(train_set, shuffle=True)
 val_loader = create_dataloader(val_set, shuffle=False)
 # For test_set, return entire set from dataloader
-test_loader = create_dataloader(test_set, batch_size=test_set.__len__(), shuffle=False)
+test_loader = create_dataloader(test_set, batch_size=len(test_set), shuffle=False)
 
 ###### Evaluation routines
 
@@ -373,8 +373,8 @@ def eval_rnn(model, val_loader):
     y_true = torch.FloatTensor()
     for x, y in val_loader:
         y_hat = model(x)
-        y_score = torch.cat((y_score, y_hat.detach().to('cpu')), dim=0)
-        y_true = torch.cat((y_true, y.detach().to('cpu')), dim=0)
+        y_score = torch.cat((y_score, y_hat.detach()), dim=0)
+        y_true = torch.cat((y_true, y.detach()), dim=0)
         
     return mean_absolute_error(y_score, y_true)
 
