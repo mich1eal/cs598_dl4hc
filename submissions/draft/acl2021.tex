@@ -102,6 +102,7 @@ k=4 gave the best results for classification models, and k=5 was best for regres
 Support vector machines (classifier and regression algorithms)
 
 \subsubsection{Multi-label LSTM}
+\label{multi_lstm}
 A single model was trained to output predictions for all nine schemas.
 
 For this type, the researchers obtained the best performance from a bidirectional Long Short Term Memory (LSTM) Recurrent Neural Network (RNN) with 100 parameters in its hidden state.
@@ -173,15 +174,16 @@ Based on partial reruns of the paper's original Jupyter notebook, each additiona
 As models are finalized, code will be added to capture more accurate metrics about runtime to be documented in the final report. 
 
 \section{Results}
-The authors' two RNN models have been implemented. The initial implementation matches within 5. Work will be done to make the results even better. 
+For this draft, the authors' Multi-label LSTM (see \nameref{multi_lstm} for model definition) was implemented. Preliminary results generally approximate the published values, with four out of nine schemas (Global self-evaluation, Health, Other people, and Other's views on self) falling within the authors' 95\% confidence bounds. The full list of results is presented in Table \ref{tab:multi_lstm} below. A discussion of the possible causes for the differences in results is discussed below in \nameref{hyp1}. 
 
-Additionally, the authors other models will be implemented and added to the table below. 
-
-Our further research will be added in \nameref{further_studies}. 
+Completion of the authors' remaining models is planned for the final submission of this paper. With additional work beyond the original paper presented in \nameref{further_studies}. 
 
 \subsection{Hypothesis 1: automatic schema prediction}
+\label{hyp1}
 
-\begin{table}[b] %% use b,t,h
+Preliminary results (Table \ref{tab:multi_lstm}) show some variation between published data reproduced data. These variations are attributed to a number of factors: 
+
+\begin{table}[h] %% use b,t,h
 \centering
 % you can use l,r,c for left-aligned, right-aligned or centered columns
 \begin{tabular}{lcc}
@@ -199,7 +201,7 @@ Hopelessness            & 0.53 [0.50,0.56] & 0.44 \\
 Other's views on self   & 0.50 [0.47,0.54] & 0.49 \\
 \bottomrule
 \end{tabular}
-\caption{Spearman correlation for multi-label LSTM model}
+\caption{Spearman correlation [95\% confidence bounds] for multi-label LSTM model}
 \label{tab:multi_lstm}
 \end{table}
 
