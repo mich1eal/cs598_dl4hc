@@ -67,17 +67,17 @@ A useful cognitive therapy exercise involves having patients identify the though
 
 \section{Scope of reproducibility}
 
-In this paper, we test the central hypothesis of \citeauthor{burger_2021}. We verify that schemas can be automatically predicted from patient thought records, and that this can be done with accuracy greater than random chance.
+In this paper, we test the central hypothesis of \citeauthor{burger_2021} We verify that schemas can be automatically predicted from patient thought records, and that this can be done with accuracy greater than random chance.
 
 We re-implement four models used in the paper:
 \begin{enumerate}
-    \item K-nearest neighbors (classifier and regression algorithms)
+    \item k-nearest neighbors (classifier and regression algorithms)
     \item Support vector machines (classifier and regression algorithms)
     \item Multi-label LSTM, i.e. a single model to output predictions for all schemas (regression algorithm)
     \item Per-schema LSTMs, i.e. one LSTM for each schema (classification algorithm)
 \end{enumerate}
 
-In order to generate comparable results, we adopt a number of the design choices of \citeauthor{burger_2021}. We use pre-trained GLoVE embeddings \citep{pennington_2014} in all of the above models. 
+In order to generate comparable results, we adopt a number of the design choices of \citeauthor{burger_2021}. We use pre-trained GLoVe embeddings \citep{pennington_2014} in all of the above models. 
 
 We also measure model performance using Spearman's rank-order correlation between predictions and ground truth. 
 
@@ -123,7 +123,7 @@ Instead of a sigmoid activation, these models used softmax, since points on the 
 
 Each per-schema model had 161,604 trainable parameters, with the same number of non-trainable parameters as the multi-label model. The total was 424,004.
 
-\subsection{Note on embeddings}
+\subsubsection{Note on embeddings}
 The researchers created custom per-thought-record embeddings for the kNN and SVM models. In contrast, the RNN models used basic per-word GLoVe embeddings as weights.
 
 For the custom embeddings, each word's GLoVe embedding was multiplied by the word's TF-IDF weight. The resulting vector was divided by its 2-norm. Then, for each thought record, the applicable word vectors were summed and averaged. This gave one embedding per thought record.
@@ -132,7 +132,7 @@ For the custom embeddings, each word's GLoVe embedding was multiplied by the wor
 The data used in the original paper is available online \citep{burger_2021_data}. The data is referenced at multiple phases: 
 \begin{enumerate}
     \item Fully raw - data directly pulled from the authors' survey. This data contains sensitive information and is not published. 
-    \item Anonymized raw - data that has been anonymized. This data is otherwise in its original form. It includes participant IDs, the situational scenarios that participants responded to, other thought-record grouping information, and the ground-truth correspondence scores for each schema on a 0-3 scale.
+    \item Anonymized raw - data that has been anonymized. This data is otherwise in its original form. It includes participant IDs, the situational scenarios that participants responded to, the thought records themselves, other grouping information, and the ground-truth correspondence scores for each schema on a 0-3 scale.
     \label{anon_raw}
     \item Preprocessed - thought records have been normalized, spell-checked, stripped of common words, and split into test/validation/train sets. Thought records have also been decoupled from contextual information like participant IDs and situational scenarios.
     \label{preprocess}
@@ -147,7 +147,7 @@ For their RNN models, \citeauthor{burger_2021} conducted a large parameter sweep
 
 For our ablations, we intend to perform a hyperparameter sweep. 
 
-For the single multi-label model in our draft, we used the author's optimal hyperparameters with the exception of the loss function. The original Keras models used categorical cross entropy, which has no direct pyTorch equivalent. In its place we used binary cross entropy (BCELoss). This gave us better results than BCEWithLogitsLoss, which combines BCE with a sigmoid layer.
+For the single multi-label model in our draft, we used the author's optimal hyperparameters with the exception of the loss function and learning rate. The original Keras models used categorical cross entropy, which has no direct pyTorch equivalent. In its place we CrossEntropyLoss. We also doubled the researchers' learning rate to 0.002.
 
 \subsection{Implementation}
 The authors' code is available in its entirety online \citep{burger_2021_data}. While the authors' code was referenced, the code for this paper is original. 
@@ -175,7 +175,7 @@ Based on partial reruns of the paper's original Jupyter notebook, each additiona
 As models are finalized, code will be added to capture more accurate metrics about runtime to be documented in the final report. 
 
 \section{Results}
-Preliminary results include only the authors' Multi-label LSTM (see \nameref{multi_lstm} for model definition) was implemented. The authors' three remaining models will be implemented in conjunctions with the final submission of this paper, with additional work beyond the original paper's scope presented in \nameref{further_studies}. Once all models have been implemented, the claims involving multiple models (See \nameref{claims}) will be verified. Currently, only nominal values nominal values are reported, but implementation of boot-strapped confidence bounds is also planned.
+Preliminary results include only the authors' Multi-label LSTM (see \nameref{multi_lstm} for model definition) was implemented. The authors' three remaining models will be implemented in conjunctions with the final submission of this paper, with additional work beyond the original paper's scope presented in \nameref{further_studies}. Once all models have been implemented, the claims involving multiple models (See \nameref{claims}) will be verified. Currently, only nominal values are reported, but implementation of boot-strapped confidence bounds is also planned.
 
 \subsection{Hypothesis 1: automatic schema prediction}
 \label{hyp1}
@@ -203,9 +203,9 @@ Other's views           & 0.50 [0.47, 0.54] & 0.49 \\
 \label{tab:multi_lstm}
 \end{table}
 
-Preliminary results show some variation between published data reproduced data. These variations are attributed to a number of factors: 
+Preliminary results show some variation between published data and reproduced data. These variations are attributed to a number of factors: 
 \begin{itemize}
-  \item A random partition of train/validation/test sets was used. \citeauthor{burger_2021} created sets of samples with equal distributions of each schema. 
+  \item A random partition of train/validation/test sets was used. \citeauthor{burger_2021} created sets of samples with equal distributions of each schema. This may explain the much lower scores we obtain for schemas that were sparsely represented in the source data, such as "Power and Control" and Meta-cognition.
   \item Model architecture was implemented using Pytorch instead of TensorFlow. This includes the LSTM, loss function, optimizer, etc.
   \item Unique padding, unknown, and End of Sentence tokens were implemented. \citeauthor{burger_2021} only used padding tokens, with unknown tokens handled through TensorFlow's default functionality.
 \end{itemize}
@@ -216,8 +216,10 @@ Overall, the similarity between the published and preliminary reproduced results
 
 The following additional research is planned, to be further defined and implemented with the final submission of this paper: 
 \begin{enumerate}
-    \item The authors' Multi-lable RNN, but without the removal of common words in preprocessing, or with multiple utterances chained together. 
-    \item The above experiment, but using a modern transformer based model. 
+    \item The authors' Multi-label RNN, but without the removal of common words in preprocessing, or with multiple thought records chained together. In the original experiment, most participants gave a sequence of responses to each scenario, and we may find some advantage by chaining each participant's responses together.
+    \item The above experiment, but using a modern transformer based model such as BERT. 
+    \item Our draft model is highly sensitive to small changes in the learning rate. We plan to try dynamically adjusting the learning rate and to see if it gives better results. We will also vary the number of training epochs.
+    \item The authors' Multi-label RNN uses a loss function that expects one-hot encoded class labels. This is very different from the actual schema labels, where thought records can match multiple schemas on a 0-4 scale. We may try a loss function that's better suited to modeling these labels. If we treat both labels and predictions as probability distributions, we may be able to use KL divergence.
 \end{enumerate}
 \section{Discussion}
 TODO
