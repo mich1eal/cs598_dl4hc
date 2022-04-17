@@ -100,13 +100,13 @@ To generate predictions, the classification models computed the statistical mode
 k=4 gave the best results for classification models, and k=5 was best for regression models.
 
 \subsubsection{Support Vector Machine}
-Support vector machines (classifier and regression algorithms)
+\citeauthor{burger_2021} implemented both Support Vector Machine Classifier (SVM-C) and Regression (SVM-R) models. For both implementations, a separate classifier was created for each schema. Each SVM outputs a value for its schema, and all nine were evaluated together using Spearman's correlation coefficient. \citeauthor{burger_2021} selected Radial Basis Function (RBF) as the most effective kernel. RBF has one trainable parameter per input dimension, plus the SVM's bias term. Utterance-level GLoVE embeddings with 100 dimensions were used as inputs. As a result, nine SVM models have a total of 909 trainable parameters. 
 
 \subsubsection{Multi-label LSTM}
 \label{multi_lstm}
 A single model was trained to output predictions for all nine schemas.
 
-For this type, the researchers obtained the best performance from a bidirectional Long Short Term Memory (LSTM) Recurrent Neural Network (RNN) with 100 parameters in its hidden state.
+For this model, the researchers obtained the best performance from a bidirectional Long Short Term Memory (LSTM) Recurrent Neural Network (RNN) with 100 parameters in its hidden state.
 
 The model also included an embedding layer, which used GLoVE embeddings on a per-word basis. Following the LSTM, a 10\% dropout layer fed a single fully connected layer, which reduced the output to the 9 classes. Finally, a sigmoid activation function output per-class probabilities. 
 
