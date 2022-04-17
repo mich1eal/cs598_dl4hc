@@ -82,6 +82,7 @@ In order to generate comparable results, we adopt a number of the design choices
 We also measure model performance using Spearman's rank-order correlation between predictions and ground truth. 
 
 \subsection{Addressed claims from the original paper}
+\label{claims}
 Because of our similar design, we expect to obtain similar results to \citeauthor{burger_2021}. In particular, we will verify the following three claims:
 \begin{enumerate}
     \item Per-schema LSTMs outperform other tested models on all schemas except ``Power and Control" and ``Meta-Cognition".
@@ -176,13 +177,19 @@ As models are finalized, code will be added to capture more accurate metrics abo
 \section{Results}
 For this draft, the authors' Multi-label LSTM (see \nameref{multi_lstm} for model definition) was implemented. Preliminary results generally approximate the published values, with four out of nine schemas (Global self-evaluation, Health, Other people, and Other's views on self) falling within the authors' 95\% confidence bounds. The full list of results is presented in Table \ref{tab:multi_lstm} below. A discussion of the possible causes for the differences in results is discussed below in \nameref{hyp1}. 
 
-Completion of the authors' remaining models is planned for the final submission of this paper. With additional work beyond the original paper presented in \nameref{further_studies}. 
+While preliminary reproduced results only include nominal values, implementation of boot-strapped confidence bounds is also planned.
+
+The authors' three remaining models will be implemented in conjunctions with the final submission of this paper, with additional work beyond the original paper's scope presented in \nameref{further_studies}. Once all models have been implemented, the claims involving multiple models (See\nameref{claims}) will be verified.
 
 \subsection{Hypothesis 1: automatic schema prediction}
 \label{hyp1}
 
 Preliminary results (Table \ref{tab:multi_lstm}) show some variation between published data reproduced data. These variations are attributed to a number of factors: 
-
+\begin{itemize}
+  \item A random partition of train/validation/test sets was used. \citeauthor{burger_2021} created sets of samples with equal distributions of each schema. 
+  \item Model architecture was implemented using Pytorch instead of TensorFlow. This includes the LSTM, loss function, optimizer, etc.
+  \item Unique padding, unknown, and End of Sentence tokens were implemented. \citeauthor{burger_2021} only used padding tokens, with unknown tokens handled through TensorFlow's default functionality.
+\end{itemize}
 \begin{table}[h] %% use b,t,h
 \centering
 % you can use l,r,c for left-aligned, right-aligned or centered columns
@@ -190,20 +197,22 @@ Preliminary results (Table \ref{tab:multi_lstm}) show some variation between pub
 \toprule
 Schema      &Published     &Reproduced \\ % use ampersands to separate columns and \\ for end of rows
 \midrule
-Attachment              & 0.67 [0.66,0.72] & 0.63 \\
-Competence              & 0.66 [0.64,0.69] & 0.63 \\
-Global self-evaluation  & 0.49 [0.45,0.53] & 0.49 \\
-Health                  & 0.35 [0.31,0.39] & 0.35 \\
-Power and Control       & 0.31 [0.27,0.34] & 0.06 \\
-Meta-cognition          & 0.11 [0.06,0.14] & 0.03 \\
-Other people            & 0.16 [0.10,0.20] & 0.11 \\
-Hopelessness            & 0.53 [0.50,0.56] & 0.44 \\
-Other's views on self   & 0.50 [0.47,0.54] & 0.49 \\
+Attachment              & 0.67 [0.66, 0.72] & 0.63 \\
+Competence              & 0.66 [0.64, 0.69] & 0.63 \\
+Global self-evaluation  & 0.49 [0.45, 0.53] & 0.49 \\
+Health                  & 0.35 [0.31, 0.39] & 0.35 \\
+Power and Control       & 0.31 [0.27, 0.34] & 0.06 \\
+Meta-cognition          & 0.11 [0.06, 0.14] & 0.03 \\
+Other people            & 0.16 [0.10, 0.20] & 0.11 \\
+Hopelessness            & 0.53 [0.50, 0.56] & 0.44 \\
+Other's views on self   & 0.50 [0.47, 0.54] & 0.49 \\
 \bottomrule
 \end{tabular}
 \caption{Spearman correlation [95\% confidence bounds] for multi-label LSTM model}
 \label{tab:multi_lstm}
 \end{table}
+
+Overall, the similarity between the published and preliminary reproduced results gives confidence that the overall model architecture and training scheme is correct. With additional fine-tuning, a closer match will likely be achieved. 
 
 \subsection{Further studies}
 \label{further_studies}
