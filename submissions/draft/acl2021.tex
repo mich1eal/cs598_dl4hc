@@ -175,21 +175,12 @@ Based on partial reruns of the paper's original Jupyter notebook, each additiona
 As models are finalized, code will be added to capture more accurate metrics about runtime to be documented in the final report. 
 
 \section{Results}
-For this draft, the authors' Multi-label LSTM (see \nameref{multi_lstm} for model definition) was implemented. Preliminary results generally approximate the published values, with four out of nine schemas (Global self-evaluation, Health, Other people, and Other's views on self) falling within the authors' 95\% confidence bounds. The full list of results is presented in Table \ref{tab:multi_lstm} below. A discussion of the possible causes for the differences in results is discussed below in \nameref{hyp1}. 
-
-While preliminary reproduced results only include nominal values, implementation of boot-strapped confidence bounds is also planned.
-
-The authors' three remaining models will be implemented in conjunctions with the final submission of this paper, with additional work beyond the original paper's scope presented in \nameref{further_studies}. Once all models have been implemented, the claims involving multiple models (See\nameref{claims}) will be verified.
+Preliminary results include only the authors' Multi-label LSTM (see \nameref{multi_lstm} for model definition) was implemented. The authors' three remaining models will be implemented in conjunctions with the final submission of this paper, with additional work beyond the original paper's scope presented in \nameref{further_studies}. Once all models have been implemented, the claims involving multiple models (See \nameref{claims}) will be verified. Currently, only nominal values nominal values are reported, but implementation of boot-strapped confidence bounds is also planned.
 
 \subsection{Hypothesis 1: automatic schema prediction}
 \label{hyp1}
+Preliminary results for the Multi-label LSTM generally approximate the published values, with four out of nine schemas (Global self-evaluation, Health, Other people, and Other's views on self) falling within the authors' 95\% confidence bounds. The full list of results is presented in Table \ref{tab:multi_lstm} below. 
 
-Preliminary results (Table \ref{tab:multi_lstm}) show some variation between published data reproduced data. These variations are attributed to a number of factors: 
-\begin{itemize}
-  \item A random partition of train/validation/test sets was used. \citeauthor{burger_2021} created sets of samples with equal distributions of each schema. 
-  \item Model architecture was implemented using Pytorch instead of TensorFlow. This includes the LSTM, loss function, optimizer, etc.
-  \item Unique padding, unknown, and End of Sentence tokens were implemented. \citeauthor{burger_2021} only used padding tokens, with unknown tokens handled through TensorFlow's default functionality.
-\end{itemize}
 \begin{table}[h] %% use b,t,h
 \centering
 % you can use l,r,c for left-aligned, right-aligned or centered columns
@@ -212,7 +203,13 @@ Other's views on self   & 0.50 [0.47, 0.54] & 0.49 \\
 \label{tab:multi_lstm}
 \end{table}
 
-Overall, the similarity between the published and preliminary reproduced results gives confidence that the overall model architecture and training scheme is correct. With additional fine-tuning, a closer match will likely be achieved. 
+Preliminary results show some variation between published data reproduced data. These variations are attributed to a number of factors: 
+\begin{itemize}
+  \item A random partition of train/validation/test sets was used. \citeauthor{burger_2021} created sets of samples with equal distributions of each schema. 
+  \item Model architecture was implemented using Pytorch instead of TensorFlow. This includes the LSTM, loss function, optimizer, etc.
+  \item Unique padding, unknown, and End of Sentence tokens were implemented. \citeauthor{burger_2021} only used padding tokens, with unknown tokens handled through TensorFlow's default functionality.
+\end{itemize}
+Overall, the similarity between the published and preliminary reproduced results gives confidence that the general model architecture and training scheme is correct. With additional fine-tuning possible rectification of the differences listed above, a closer match is expected. 
 
 \subsection{Further studies}
 \label{further_studies}
