@@ -120,7 +120,7 @@ Instead of a sigmoid activation, these models used softmax, since points on the 
 
 Each per-schema model had 161,604 trainable parameters, with the same number of non-trainable parameters as the multi-label model. The total was 424,004.
 
-\subsubsection{Note on embeddings}
+\subsection{Note on embeddings}
 The researchers created custom per-thought-record embeddings for the kNN and SVM models. In contrast, the RNN models used basic per-word GLoVe embeddings as weights.
 
 For the custom embeddings, each word's GLoVe embedding was multiplied by the word's TF-IDF weight. The resulting vector was divided by its 2-norm. Then, for each thought record, the applicable word vectors were summed and averaged. This gave one embedding per thought record.
@@ -180,7 +180,27 @@ Our further research will be added in \nameref{further_studies}.
 
 \subsection{Hypothesis 1: automatic schema prediction}
 
-Author score, our score 
+\begin{table}[b] %% use b,t,h
+\centering
+% you can use l,r,c for left-aligned, right-aligned or centered columns
+\begin{tabular}{lcc}
+\toprule
+Schema      &Published     &Reproduced \\ % use ampersands to separate columns and \\ for end of rows
+\midrule
+Attachment              & 0.67 [0.66,0.72] & 0.63 \\
+Competence              & 0.66 [0.64,0.69] & 0.63 \\
+Global self-evaluation  & 0.49 [0.45,0.53] & 0.49 \\
+Health                  & 0.35 [0.31,0.39] & 0.35 \\
+Power and Control       & 0.31 [0.27,0.34] & 0.06 \\
+Meta-cognition          & 0.11 [0.06,0.14] & 0.03 \\
+Other people            & 0.16 [0.10,0.20] & 0.11 \\
+Hopelessness            & 0.53 [0.50,0.56] & 0.44 \\
+Other's views on self   & 0.50 [0.47,0.54] & 0.49 \\
+\bottomrule
+\end{tabular}
+\caption{Spearman correlation for multi-label LSTM model}
+\label{tab:multi_lstm}
+\end{table}
 
 \subsection{Further studies}
 \label{further_studies}
