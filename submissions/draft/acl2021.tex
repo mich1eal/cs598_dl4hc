@@ -205,7 +205,7 @@ Other's views           & 0.50 [0.47, 0.54] & 0.49 \\
 
 Preliminary results show some variation between published data and reproduced data. These variations are attributed to a number of factors: 
 \begin{itemize}
-  \item A random partition of train/validation/test sets was used. \citeauthor{burger_2021} created sets of samples with equal distributions of each schema. This may explain the much lower scores we obtain for schemas that were sparsely represented in the source data, such as ``Power and Control" and ``Meta-cognition"
+  \item A random partition of train/validation/test sets was used. \citeauthor{burger_2021} created sets of samples with equal distributions of each schema. This may explain the much lower scores we obtain for schemas that were sparsely represented in the source data, such as ``Power and Control" and ``Meta-cognition."
   \item Model architecture was implemented using Pytorch instead of TensorFlow. This includes the LSTM, loss function, optimizer, etc.
   \item Unique padding, unknown, and End of Sentence tokens were implemented. \citeauthor{burger_2021} only used padding tokens, with unknown tokens handled through TensorFlow's default functionality.
   \item The original Keras models used categorical cross entropy, which has no direct pyTorch equivalent. In its place we used CrossEntropyLoss. We also doubled the researchers' learning rate to 0.002.
