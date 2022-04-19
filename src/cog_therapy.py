@@ -301,9 +301,6 @@ class MultiLabelRNN(nn.Module):
     PyTorch implementation of the researchers' multi-label RNN.
     This is a bidirectional LSTM with a dropout layer and a dense
     output layer, with sigmoid activation.
-    
-    For now, use torch nn.Embedding instead of GLoVE embeddings.
-    Will need to replace this with GLoVE embeddings.
     '''
     
     def __init__(self, vocab_size, embeddings=None, pad_idx=0, hidden_size=100, dropout=0.5, num_labels=len(SCHEMAS)):
@@ -334,6 +331,44 @@ class MultiLabelRNN(nn.Module):
                 
         return label_probs
 
+### Per-schema RNN
+
+class PerSchemaRNN(nn.Module):
+    '''
+    PyTorch implementation of the researchers' per-schema RNN model.
+    This is a bidirectional LSTM with a dropout layer and a dense
+    output layer, with softmax activation.
+    The dense layer spits out 4 outputs, one for each point on the
+    rating scale for how well a thought record corresponds to a schema.
+    '''
+
+    def __init__(self, vocab_size, embeddings=None, pad_idx=0, hidden_size=100, dropout=0.5):
+        super().__init__()
+                
+        if embeddings is not None:
+            embed_size = len(embeddings[0])
+            self.embedding = nn.Embedding.from_pretrained(embeddings, padding_idx=pad_idx, freeze=True)
+        else:
+            embed_size = 100
+            self.embedding = nn.Embedding(vocab_size, embed_size, padding_idx=pad_idx)
+        
+        self.lstm = nn.LSTM(input_size=embed_size, hidden_size=hidden_size, num_layers=1,
+                            batch_first=True, bidirectional=True)
+        self.do = nn.Dropout(dropout)
+        self.fc = nn.Linear((2 * hidden_size), 4)
+        self.softmax = nn.Softmax()
+    
+    def forward(self, x):
+        embeds = self.embedding(x)
+        
+        lstm_out, (hidden_state_n, cell_state_n) = self.lstm(embeds)
+        #get last layer of output 
+        lstm_last = lstm_out[:, -1, :].squeeze(1)
+                
+        do_out = self.do(lstm_last)
+        label_probs = self.softmax(self.fc(do_out))
+                
+        return label_probs
 
 # Define starter multi-label RNN, plus its loss function and optimizer.
 # Start with the settings that gave the best results for the researchers.
