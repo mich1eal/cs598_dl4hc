@@ -29,6 +29,7 @@ from torchtext.vocab import GloVe
 #from sklearn.model_selection import GridSearchCV
 # To compute model score on validation set
 from sklearn.metrics import mean_absolute_error
+from sklearn.feature_extraction.text import TfidfVectorizer
 # To compute model goodness-of-fit
 from scipy.stats import spearmanr
 # Store initial RAM usage to help tare final usage
@@ -146,6 +147,11 @@ class CognitiveDataset(torch.utils.data.Dataset):
         #Get the relevent rows in GLoVE, and match their indices with
         #the indices in our vocab https://github.com/pytorch/text/issues/1350
         self.embed_vec = embeddings.get_vecs_by_tokens(self.vocab.get_itos())
+        
+        tfidf_vectorizer = TfidfVectorizer(input='filename', stop_words='english')
+
+        tfidf_vector = tfidf_vectorizer.fit_transform(text_files)
+        
 
     def convert_text(self):
         '''
@@ -233,8 +239,6 @@ train_set_utterance = CognitiveDataset(train_frame,
                              vocab=None,
                              embeddings=embedding_glove,
                              embed_mode='utterance')
-
-train_set_utterance[7]
 
 val_set = CognitiveDataset(val_frame, 
                              max_len=25,
