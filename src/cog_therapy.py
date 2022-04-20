@@ -141,6 +141,11 @@ class CognitiveDataset(torch.utils.data.Dataset):
                            max_tokens=self.vocab_size,
                            specials=[UNK, END, PAD])
         self.vocab.set_default_index(self.vocab[UNK])
+        
+        
+        #Get the relevent rows in GLoVE, and match their indices with
+        #the indices in our vocab https://github.com/pytorch/text/issues/1350
+        self.embed_vec = embeddings.get_vecs_by_tokens(self.vocab.get_itos())
 
     def convert_text(self):
         '''
@@ -148,9 +153,7 @@ class CognitiveDataset(torch.utils.data.Dataset):
         '''
         for utterance in self.utterances:
             idx_list = [self.vocab[token] for token in utterance]
-      
-            idx_list.append(self.vocab[END])
-            
+                  
             self.textual_ids.append(idx_list)
                        
 
@@ -159,36 +162,33 @@ class CognitiveDataset(torch.utils.data.Dataset):
         Return the utterance per the type of ebedding specified
         Adds padding as required
         '''
-        
         indices = self.textual_ids[idx]
-        idx_len = len(indices)
 
-        if idx_len > self.max_len:
-            #too long, trim
-            indices = indices[:self.max_len]
-
-        elif idx_len < self.max_len:
-            #too short, add padding
-            indices += [self.vocab[PAD]] * (self.max_len - idx_len)
-            
-        #now return indices with the desired embedding 
         if self.embed_mode is None: 
-            #no embedding required, return
+            #no embedding required, return just indices, but pad to correct length 
+            
+            indices.append(self.vocab[END])
+            idx_len = len(indices)
+            
+            if idx_len > self.max_len:
+                #too long, trim
+                indices = indices[:self.max_len]
+
+            elif idx_len < self.max_len:
+                #too short, add padding
+                indices += [self.vocab[PAD]] * (self.max_len - idx_len)
+                        
             return torch.LongTensor(indices)
-        else: 
-            #embedding needed 
-            vectors = self.vocab.vectors
-            
-            if self.embed_mode == 'token':
-                out = torch.zeros([self.max_len, vectors[0].len], dtype=torch.FloatTensor)
-                for i, idx in enumerate(indices):
-                    out[:, i] = vectors[idx] 
-                return out
-            else:
-                #return one embedding for utterance 
-                return None
-            
         
+        elif self.embed_mode == 'utterance':
+            
+            #get tensor 
+            embed_matrix = self.embed_vec[indices]
+            
+            out = embed_matrix.mean(dim=0)
+            
+            return out
+            
         
     def get_label(self, idx):
         '''
@@ -227,6 +227,15 @@ train_set = CognitiveDataset(train_frame,
                              embeddings=embedding_glove,
                              embed_mode=None)
 
+train_set_utterance = CognitiveDataset(train_frame, 
+                             max_len=25,
+                             vocab_size=2000,
+                             vocab=None,
+                             embeddings=embedding_glove,
+                             embed_mode='utterance')
+
+train_set_utterance[7]
+
 val_set = CognitiveDataset(val_frame, 
                              max_len=25,
                              vocab_size=2000,
@@ -241,12 +250,6 @@ test_set = CognitiveDataset(test_frame,
                              embeddings=embedding_glove,
                              embed_mode=None)
 
-#Load GLoVe embeddings
-#glove = GloVe(name='6B', dim=100)
-
-#Get the relevent rows in GLoVE, and match their indices with
-#the indices in our vocab https://github.com/pytorch/text/issues/1350
-embed_vec = embedding_glove.get_vecs_by_tokens(train_set.vocab.get_itos())
 
 # Create dataloaders for our three datasets
 train_loader = create_dataloader(train_set, shuffle=True)
@@ -303,7 +306,7 @@ class MultiLabelRNN(nn.Module):
     output layer, with sigmoid activation.
     '''
     
-    def __init__(self, vocab_size, embeddings=None, pad_idx=0, hidden_size=100, dropout=0.5, num_labels=len(SCHEMAS)):
+    def __init__(self, vocab_size, embeddings=None, pad_idx=None, hidden_size=100, dropout=0.5, num_labels=len(SCHEMAS)):
         super().__init__()
                 
         if embeddings is not None:
@@ -342,7 +345,7 @@ class PerSchemaRNN(nn.Module):
     rating scale for how well a thought record corresponds to a schema.
     '''
 
-    def __init__(self, vocab_size, embeddings=None, pad_idx=0, hidden_size=100, dropout=0.5):
+    def __init__(self, vocab_size, embeddings=None, pad_idx=None, hidden_size=100, dropout=0.5):
         super().__init__()
                 
         if embeddings is not None:
@@ -372,17 +375,16 @@ class PerSchemaRNN(nn.Module):
 
 # Define starter multi-label RNN, plus its loss function and optimizer.
 # Start with the settings that gave the best results for the researchers.
-vocab_size = len(train_set.vocab)
 
-mlm_starter_RNN = MultiLabelRNN(vocab_size, 
-                                embeddings=embed_vec, 
+mlm_starter_RNN = MultiLabelRNN(vocab_size=len(train_set.vocab), 
+                                embeddings=train_set.embed_vec, 
                                 pad_idx=train_set.vocab[PAD],
                                 hidden_size=100, 
                                 dropout=0.1, 
                                 num_labels=len(SCHEMAS))
 # Original Keras model used categorical cross-entropy loss.
 loss_func = nn.CrossEntropyLoss()  
-optimizer = torch.optim.Adam(mlm_starter_RNN.parameters(), lr=0.002)  # Using Keras' default learning rate, which is probably what the researchers used
+optimizer = torch.optim.Adam(mlm_starter_RNN.parameters(), lr=0.002)
 
 # Stock routine to evaluate initial RNN.
 # Taken from HW3. Will replace with skorch functionality.
