@@ -1,5 +1,5 @@
 """ 
-Michael Miller and Kurt Touhy
+Michael Miller and Kurt Tuohy
 CS 598 Deep Learning for Healthcare - University of Illinois 
 Final project - Paper Results Verification
 4/4/2022
@@ -14,6 +14,7 @@ For dependencies, and data acquisition instructions, please see this repository'
 # To track RAM and CPU usage
 import time
 import psutil
+# Store initial RAM usage to help tare final usage
 init_ram_used = psutil.virtual_memory()[3]
 
 #from collections import Counter
@@ -32,7 +33,8 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.feature_extraction.text import TfidfVectorizer
 # To compute model goodness-of-fit
 from scipy.stats import spearmanr
-# Store initial RAM usage to help tare final usage
+# To compute distance in kNN model
+from scipy.spatial.distance import cosine
 
 # Set seed. Copied from HW3 RNN notebook.
 seed = 24
@@ -148,9 +150,9 @@ class CognitiveDataset(torch.utils.data.Dataset):
         #the indices in our vocab https://github.com/pytorch/text/issues/1350
         self.embed_vec = embeddings.get_vecs_by_tokens(self.vocab.get_itos())
         
-        tfidf_vectorizer = TfidfVectorizer(input='filename', stop_words='english')
+        #tfidf_vectorizer = TfidfVectorizer(input='filename', stop_words='english')
 
-        tfidf_vector = tfidf_vectorizer.fit_transform(text_files)
+        #tfidf_vector = tfidf_vectorizer.fit_transform(text_files)
         
 
     def convert_text(self):
@@ -296,6 +298,8 @@ def spearman_r(X, Y):
 
 ###### Baseline models
 
+### kNNs
+
 
 
 ###### Paper primary model
@@ -349,7 +353,7 @@ class PerSchemaRNN(nn.Module):
     rating scale for how well a thought record corresponds to a schema.
     '''
 
-    def __init__(self, vocab_size, embeddings=None, pad_idx=None, hidden_size=100, dropout=0.5):
+    def __init__(self, vocab_size, embeddings=None, pad_idx=None, hidden_size=100, dropout=0.5, num_label_vals=4):
         super().__init__()
                 
         if embeddings is not None:
@@ -362,7 +366,7 @@ class PerSchemaRNN(nn.Module):
         self.lstm = nn.LSTM(input_size=embed_size, hidden_size=hidden_size, num_layers=1,
                             batch_first=True, bidirectional=True)
         self.do = nn.Dropout(dropout)
-        self.fc = nn.Linear((2 * hidden_size), 4)
+        self.fc = nn.Linear((2 * hidden_size), num_label_vals)
         self.softmax = nn.Softmax()
     
     def forward(self, x):
