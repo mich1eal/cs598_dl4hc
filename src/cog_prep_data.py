@@ -1,7 +1,7 @@
 """ 
 cog_read.py
 
-Routines to read in, tokenize and embed the selected cognitive-therapy dataset.
+Routines to read in, tokenize, split and embed the selected cognitive-therapy dataset.
 Data can be either the authors' original prepreocessed set, or our own
 preprocessed set.
 
@@ -121,6 +121,21 @@ def tokenize_data(dataframe,
         dataframe['tokens'] = [tokenizer(utterance) for utterance in dataframe['Utterance']]
     
     return dataframe
+
+def split_data(dataframe, train_fraction=0.7225, val_fraction=0.1275, test_fraction=0.15):
+    '''
+    Given a dataframe, return training, validation and test splits
+    with the specified proportions.
+    '''
+    
+    split_train = int(len(dataframe) * train_fraction)
+    split_val = split_train + int(len(dataframe) * val_fraction)
+
+    train_frame = dataframe.iloc[:split_train]
+    val_frame = dataframe.iloc[split_train:split_val]
+    test_frame = dataframe.iloc[split_val:]
+    
+    return (train_frame, val_frame, test_frame)
 
 
 def embed_data():
