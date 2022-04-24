@@ -36,6 +36,10 @@ from scipy.stats import spearmanr
 # To compute distance in kNN model
 from scipy.spatial.distance import cosine
 
+# Local imports to help make scripts more modular.
+import cog_globals
+import cog_prep_data
+
 # Set seed. Copied from HW3 RNN notebook.
 seed = 24
 #random.seed(seed)
@@ -43,54 +47,41 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 #os.environ["PYTHONHASHSEED"] = str(seed)
 
+# Language model to use for analysis. 'GLoVe', 'BERT' or None
+lang_model='GLoVe'
 
-DATA_DIR = '../data/DatasetsForH1'
-DATASETS = ['H1_test', 'H1_train', 'H1_validate'] 
-SCHEMAS = ["Attach","Comp","Global","Health","Control","MetaCog","Others","Hopeless","OthViews"]
+globals_dict = cog_globals.return_globals(use_custom_dataset=False, lang_model=lang_model)
+
+DATA_DIR = globals_dict.get('DATA_DIR')
+DATASETS = globals_dict.get('DATASETS')
+SCHEMAS = globals_dict.get('SCHEMAS')
 
 # used for creating text dictionaries 
-PAD = '<PAD>'
-END = '<END>'
-UNK = '<UNK>' #not used in nominal model 
+PAD = globals_dict.get('PAD')
+END = globals_dict.get('END')
+UNK = globals_dict.get('UNK') #not used in nominal model 
 
-test_fraction = .15
-val_fraction = .1275
-train_fraction = 1 - test_fraction - val_fraction
+train_fraction = globals_dict.get('train_fraction')
+val_fraction = globals_dict.get('val_fraction')
+test_fraction = globals_dict.get('test_fraction')
 
 ###### Load data
-# read in all labels
-label_frames = []
-for dataset in DATASETS: 
-    file_path = '{}/{}_labels.csv'.format(DATA_DIR, dataset)
-    label_frames.append(pd.read_csv(file_path, sep=';', header=0))
 
-# read in all texts 
-text_frames = []
-for dataset in DATASETS: 
-    file_path = '{}/{}_texts.csv'.format(DATA_DIR, dataset)
-    text_frames.append(pd.read_csv(file_path, sep=';', header=0))
-
-# we combine all data into one dataframe for convenient preprocessing 
-label_frame = pd.concat(label_frames, axis=0)
-text_frame = pd.concat(text_frames, axis=0)
-
-in_frame = pd.concat([text_frame, label_frame], axis=1)
-
+in_frame = cog_prep_data.read_data(data_dir=DATA_DIR, datasets=DATASETS)
 
 ###### Preprocess data
-# we will tokenize using pytorch utility function
-tokenize = torchtext.data.get_tokenizer('basic_english', language='en')
 
-# lists of tokens are re-added to our dataframe 
-in_frame['tokens'] = [tokenize(sentence) for sentence in in_frame['Utterance']]
+# TO EDIT/DISCUSS: this function only returns basic 'tokens' column for
+# 'GLoVe' or None language models.
+# Determin whether to move other preprocessing tasks here:
+# padding/truncating, creating vocabulary, logging special tokens, embedding.
+in_frame = cog_prep_data.tokenize_data(in_frame, lang_model=lang_model)
 
-split_train = int(len(in_frame) * train_fraction)
-split_val = split_train + int(len(in_frame) * val_fraction)
-
-train_frame = in_frame.iloc[:split_train]
-val_frame = in_frame.iloc[split_train:split_val]
-test_frame = in_frame.iloc[split_val:]
-
+# Split dataset into training / validation / test sets
+train_frame, val_frame, test_frame = cog_prep_data.split_data(in_frame,
+                                                              train_fraction=train_fraction,
+                                                              val_fraction=val_fraction,
+                                                              test_fraction=test_fraction)
 
 ###### Prepare dataloader
 # we define a custom text dataset for use with all models 
