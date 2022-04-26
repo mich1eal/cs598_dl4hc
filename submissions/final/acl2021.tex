@@ -1,0 +1,241 @@
+%
+% File acl2021.tex
+%
+%% Based on the style files for EMNLP 2020, which were
+%% Based on the style files for ACL 2020, which were
+%% Based on the style files for ACL 2018, NAACL 2018/19, which were
+%% Based on the style files for ACL-2015, with some improvements
+%%  taken from the NAACL-2016 style
+%% Based on the style files for ACL-2014, which were, in turn,
+%% based on ACL-2013, ACL-2012, ACL-2011, ACL-2010, ACL-IJCNLP-2009,
+%% EACL-2009, IJCNLP-2008...
+%% Based on the style files for EACL 2006 by 
+%%e.agirre@ehu.es or Sergi.Balari@uab.es
+%% and that of ACL 08 by Joakim Nivre and Noah Smith
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[hyperref]{acl2021}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{usebib}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\bibinput{acl2021}
+\renewcommand{\UrlFont}{\ttfamily\small}
+
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+\aclfinalcopy % Uncomment this line for the final submission
+%\def\aclpaperid{***} %  Enter the acl Paper ID here
+
+%\setlength\titlebox{5cm}
+% You can expand the titlebox if you need extra space
+% to show all the authors. Please do not make the titlebox
+% smaller than 5cm (the original size); we will check this
+% in the camera-ready version and ask you to change it back.
+
+% Content lightly modified from original work by Jesse Dodge and Noah Smith
+
+
+\newcommand\BibTeX{B\textsc{ib}\TeX}
+
+\title{CS598 DL4HC Reproducibility Project Proposal}
+
+\author{Michael Miller and Kurt Tuohy\\
+  \texttt{\{msmille3, ktuohy\}@illinois.edu}
+  \\[2em]
+  Presentation link: TODO\url{} \\
+  Code repository: \url{https://github.com/mich1eal/cs598_dl4hc} \citep{cs598_repo}}
+
+\begin{document}
+\maketitle
+
+% All sections are mandatory.
+% Keep in mind that your page limit is 8, excluding references.
+% For specific grading rubrics, please see the project instruction.
+
+\section{Introduction}
+
+The majority of text written by patients in psychological care is only interpreted by human therapists \citep{burger_2021}. In their paper, \citeauthor{burger_2021} begin to explore the potential of NLP as an aid to cognitive therapy. They seek to determine whether NLP techniques can reliably classify patient writing.
+
+A useful cognitive therapy exercise involves having patients identify the thoughts that underlie their reactions to potentially distressing situations. The authors attempt to classify a set of these written thoughts into schemas. ``Schemas" refer to core beliefs that function as the infrastructure to one's views of the world. A standard set of schemas defined by \citeauthor{millings_2015} was used.
+
+\citeauthor{burger_2021} establish a baseline for applying NLP to cognitive therapy. They intend for future researchers to leverage their paper and data to continue to explore applications of NLP in this field. In this paper, we verify the results of \citeauthor{burger_2021}, and implement several design modifications as further studies. 
+
+\section{Scope of reproducibility}
+
+In this paper, we test the central hypothesis of \citeauthor{burger_2021} We verify that schemas can be automatically predicted from patient thought records, and that this can be done with accuracy greater than random chance.
+
+We re-implement four models used in the paper:
+\begin{enumerate}
+    \item k-nearest neighbors (classifier and regression algorithms)
+    \item Support vector machines (classifier and regression algorithms)
+    \item Multi-label LSTM, i.e. a single model to output predictions for all schemas (regression algorithm)
+    \item Per-schema LSTMs, i.e. one LSTM for each schema (classification algorithm)
+\end{enumerate}
+
+In order to generate comparable results, we adopt a number of the design choices of \citeauthor{burger_2021}. We use pre-trained GLoVe embeddings \citep{pennington_2014} in all of the above models. 
+
+We also measure model performance using Spearman's rank-order correlation between predictions and ground truth. 
+
+\subsection{Addressed claims from the original paper}
+\label{claims}
+Because of our similar design, we expect to obtain similar results to \citeauthor{burger_2021}. In particular, we will verify the following three claims:
+\begin{enumerate}
+    \item Per-schema LSTMs outperform other tested models on all schemas except ``Power and Control" and ``Meta-Cognition".
+    \item Each regression model outperforms its corresponding classifier on the ``Power and Control" schema.
+    \item Each classifier outperforms the corresponding regression model on the ``Health" schema.
+\end{enumerate}
+
+\section{Methodology}
+\subsection{Model descriptions}
+\subsubsection{K-nearest Neighbors}
+\citeauthor{burger_2021} generated kNN models for selected values of k from 2 to 100. These models used the cosine distance between thought-record embeddings as the distance metric.
+
+To generate predictions, the classification models computed the statistical mode of the k nearest neighbors' labels. The regression models used the average of the nearest neighbors' labels.
+
+k=4 gave the best results for classification models, and k=5 was best for regression models.
+
+\subsubsection{Support Vector Machine}
+\citeauthor{burger_2021} implemented both Support Vector Machine Classifier (SVM-C) and Regression (SVM-R) models. For both implementations, a separate classifier was created for each schema. Each SVM outputs a value for its schema, and all nine were evaluated together using Spearman's correlation coefficient. \citeauthor{burger_2021} selected Radial Basis Function (RBF) as the most effective kernel. RBF has one trainable parameter per input dimension, plus the SVM's bias term. Utterance-level GLoVE embeddings with 100 dimensions were used as inputs. As a result, nine SVM models have a total of 909 trainable parameters. 
+
+\subsubsection{Multi-label LSTM}
+\label{multi_lstm}
+A single model was trained to output predictions for all nine schemas.
+
+For this model, the researchers obtained the best performance from a bidirectional Long Short Term Memory (LSTM) Recurrent Neural Network (RNN) with 100 parameters in its hidden state.
+
+The model also included an embedding layer, which used GLoVE embeddings on a per-word basis. Following the LSTM, a 10\% dropout layer fed a single fully connected layer, which reduced the output to the 9 classes. Finally, a sigmoid activation function output per-class probabilities. 
+
+The model was trained using cross entropy loss with the Adam optimizer and a default learning rate of 0.001.
+
+The number of trainable parameters was 162,609. The embedding involved 262,400 non-trainable parameters, for a total of 425,009.
+
+\subsubsection{Per-schema LSTMs}
+A total of nine models were trained, one for each schema. Model architecture is similar to the LSTM defined above, with the following differences:
+
+Instead of 9 output classes, each model used 4. This matched the researcher's 0-3 scale for rating thought records against schemas, where 0 meant "no correspondence with schema" and 3 meant "complete correspondence with schema".
+
+Instead of a sigmoid activation, these models used softmax, since points on the rating scale are mutually exclusive.
+
+Each per-schema model had 161,604 trainable parameters, with the same number of non-trainable parameters as the multi-label model. The total was 424,004.
+
+\subsubsection{Note on embeddings}
+The researchers created custom per-thought-record embeddings for the kNN and SVM models. In contrast, the RNN models used basic per-word GLoVe embeddings as weights.
+
+For the custom embeddings, each word's GLoVe embedding was multiplied by the word's TF-IDF weight. The resulting vector was divided by its 2-norm. Then, for each thought record, the applicable word vectors were summed and averaged. This gave one embedding per thought record.
+
+\subsection{Data descriptions}
+The data used in the original paper is available online \citep{burger_2021_data}. The data is referenced at multiple phases: 
+\begin{enumerate}
+    \item Fully raw - data directly pulled from the authors' survey. This data contains sensitive information and is not published. 
+    \item Anonymized raw - data that has been anonymized. This data is otherwise in its original form. It includes participant IDs, the situational scenarios that participants responded to, the thought records themselves, other grouping information, and the ground-truth correspondence scores for each schema on a 0-3 scale.
+    \label{anon_raw}
+    \item Preprocessed - thought records have been normalized, spell-checked, stripped of common words, and split into test/validation/train sets. Thought records have also been decoupled from contextual information like participant IDs and situational scenarios.
+    \label{preprocess}
+\end{enumerate}
+
+Dataset \ref{preprocess} was used to recreate authors' original results. By taking advantage of the authors' preprocessing, fewer confounding variables will exist in the output. 
+
+Dataset \ref{anon_raw} will be used for additional ablations. It is hypothesized that keeping common words in the data may improve performance, especially when using larger, more expressive models. 
+
+\subsection{Hyperparameters}
+For their RNN models, \citeauthor{burger_2021} conducted a large parameter sweep to optimize hyperparameters. It is not our intent to duplicate this effort. We will instead focus on verifying the authors' result using their optimal hyperparameters.
+
+For our ablations, we intend to perform a hyperparameter sweep. 
+
+
+
+\subsection{Implementation}
+The authors' code is available in its entirety online \citep{burger_2021_data}. While the authors' code was referenced, the code for this paper is original. 
+
+The codebase of this paper is available online \citep{cs598_repo}. All scripting code is written in Python. A number of python modules were used, in particular, we used pyTorch as our primary deep learning module. A full list of Python module dependencies in available in the repository. 
+
+Code was executed on machines running Windows 10 using Python 3.10. GPUs were deemed unnecessary for training (see \nameref{comp_reqs}). 
+
+During implementation, a number of documentation sources were reviewed. These include documentation for individual Python modules, online tutorials and forums, and course material from this and other classes.  
+
+\subsection{Computational requirements}
+\label{comp_reqs}
+
+In our proposal, we stated that a relatively small dataset (5747 thought records) and relatively simple models were used. 
+The largest time requirements of \citet{burger_2021} exist because they trained hundreds of RNN models to decrease the role of chance in the final results. We planned to reduce the number of models trained while still confirming key results, if computation time became prohibitive. As such, we planned execution using standard computers without access to GPUs, TPUs, or computational clusters. 
+
+In general, this approach appears to be succeeding. Training an individual RNN takes 7-10 minutes on a conventional CPU. This performance is satisfactory for development and validation. Final model evaluation may be run overnight but is not expected to become an inhibiting factor. 
+
+The paper's original Jupyter notebook tracked clock time but not CPU usage. Each of their RNNs required about 2.6 minutes to train, which is on the same order of magnitude as our training times.
+
+The script to run our single draft model consumes about 570 MB of RAM, which includes GLoVe embeddings. In comparison, the original notebook consumes about 834 MB before training any models.
+
+Based on partial reruns of the paper's original Jupyter notebook, each additional RNN should require about 26 MB. The kNN and SVM models should be smaller yet.
+
+As models are finalized, code will be added to capture more accurate metrics about runtime to be documented in the final report. 
+
+\section{Results}
+Preliminary results include only the authors' Multi-label LSTM (see \nameref{multi_lstm} for model definition) was implemented. The authors' three remaining models will be implemented in conjunctions with the final submission of this paper, with additional work beyond the original paper's scope presented in \nameref{further_studies}. Once all models have been implemented, the claims involving multiple models (See \nameref{claims}) will be verified. Currently, only nominal values are reported, but implementation of boot-strapped confidence bounds is also planned.
+
+\subsection{Hypothesis 1: automatic schema prediction}
+\label{hyp1}
+Preliminary results for the Multi-label LSTM generally approximate the published values, with four out of nine schemas (Global self-evaluation, Health, Other people, and Other's views on self) falling within the authors' 95\% confidence bounds. The full list of results is presented in Table \ref{tab:multi_lstm} below. 
+
+\begin{table}[h] %% use b,t,h
+\centering
+% you can use l,r,c for left-aligned, right-aligned or centered columns
+\begin{tabular}{lcc}
+\toprule
+Schema                  &Published          &Reproduced \\ % use ampersands to separate columns and \\ for end of rows
+\midrule
+Attachment              & 0.67 [0.66, 0.72] & 0.63 \\
+Competence              & 0.66 [0.64, 0.69] & 0.63 \\
+Global self-eval        & 0.49 [0.45, 0.53] & 0.49 \\
+Health                  & 0.35 [0.31, 0.39] & 0.35 \\
+Power \& ctrl           & 0.31 [0.27, 0.34] & 0.06 \\
+Meta-cognition          & 0.11 [0.06, 0.14] & 0.03 \\
+Other people            & 0.16 [0.10, 0.20] & 0.11 \\
+Hopelessness            & 0.53 [0.50, 0.56] & 0.44 \\
+Other's views           & 0.50 [0.47, 0.54] & 0.49 \\
+\bottomrule
+\end{tabular}
+\caption{Spearman correlation [95\% confidence bounds] for multi-label LSTM model}
+\label{tab:multi_lstm}
+\end{table}
+
+Preliminary results show some variation between published data and reproduced data. These variations are attributed to a number of factors: 
+\begin{itemize}
+  \item A random partition of train/validation/test sets was used. \citeauthor{burger_2021} created sets of samples with equal distributions of each schema. This may explain the much lower scores we obtain for schemas that were sparsely represented in the source data, such as ``Power and Control" and ``Meta-cognition."
+  \item Model architecture was implemented using Pytorch instead of TensorFlow. This includes the LSTM, loss function, optimizer, etc.
+  \item Unique padding, unknown, and End of Sentence tokens were implemented. \citeauthor{burger_2021} only used padding tokens, with unknown tokens handled through TensorFlow's default functionality.
+  \item The original Keras models used categorical cross entropy, which has no direct pyTorch equivalent. In its place we used CrossEntropyLoss. We also doubled the researchers' learning rate to 0.002.
+\end{itemize}
+Overall, the similarity between the published and preliminary reproduced results gives confidence that the general model architecture and training scheme is correct. With additional fine-tuning possible rectification of the differences listed above, a closer match is expected. 
+
+\subsection{Further studies}
+\label{further_studies}
+
+The following additional research is planned, to be further defined and implemented with the final submission of this paper: 
+\begin{enumerate}
+    \item The authors' Multi-label RNN, but without the removal of common words in preprocessing, or with multiple thought records chained together. In the original experiment, most participants gave a sequence of responses to each scenario, and we may find some advantage by chaining each participant's responses together.
+    \item The above experiment, but using a modern transformer based model such as BERT. 
+    \item Our draft model is highly sensitive to small changes in the learning rate. We plan to try dynamically adjusting the learning rate and to see if it gives better results. We will also vary the number of training epochs.
+    \item The authors' Multi-label RNN uses a loss function that expects one-hot encoded class labels. This is very different from the actual schema labels, where thought records can match multiple schemas on a 0-4 scale. We may try a loss function that's better suited to modeling these labels. If we treat both labels and predictions as probability distributions, we may be able to use KL divergence.
+\end{enumerate}
+\section{Discussion}
+TODO
+\subsection{What was easy}
+TODO
+\subsection{What was difficult}
+TODO
+\subsection{Recommendations for reproducibility}
+TODO
+\section{Communication with original authors}
+TODO
+\bibliographystyle{acl_natbib}
+\bibliography{acl2021}
+
+%\appendix
+
+
+\end{document}

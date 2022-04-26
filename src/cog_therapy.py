@@ -17,28 +17,24 @@ import psutil
 # Store initial RAM usage to help tare final usage
 init_ram_used = psutil.virtual_memory()[3]
 
-#from collections import Counter
 import pandas as pd
 import numpy as np
 import torch 
 import torch.nn as nn
-from torch.utils.data import DataLoader
-import torchtext
 from torchtext.vocab import GloVe
 # To help perform hyperparameter grid search
 #from skorch import NeuralNetClassifier
 #from sklearn.model_selection import GridSearchCV
 # To compute model score on validation set
 from sklearn.metrics import mean_absolute_error
-from sklearn.feature_extraction.text import TfidfVectorizer
 # To compute model goodness-of-fit
 from scipy.stats import spearmanr
 # To compute distance in kNN model
-from scipy.spatial.distance import cosine
+#from scipy.spatial.distance import cosine
 
 # Local imports to help make scripts more modular.
-import cog_globals
-import cog_prep_data
+import cog_globals as GLOB
+import cog_prep_data as prep
 
 # Set seed. Copied from HW3 RNN notebook.
 seed = 24
@@ -47,212 +43,44 @@ np.random.seed(seed)
 torch.manual_seed(seed)
 #os.environ["PYTHONHASHSEED"] = str(seed)
 
-# Language model to use for analysis. 'GLoVe', 'BERT' or None
-lang_model='GLoVe'
-
-globals_dict = cog_globals.return_globals(use_custom_dataset=False, lang_model=lang_model)
-
-DATA_DIR = globals_dict.get('DATA_DIR')
-DATASETS = globals_dict.get('DATASETS')
-SCHEMAS = globals_dict.get('SCHEMAS')
-
-# used for creating text dictionaries 
-PAD = globals_dict.get('PAD')
-END = globals_dict.get('END')
-UNK = globals_dict.get('UNK') #not used in nominal model 
-
-train_fraction = globals_dict.get('train_fraction')
-val_fraction = globals_dict.get('val_fraction')
-test_fraction = globals_dict.get('test_fraction')
-
 ###### Load data
-
-in_frame = cog_prep_data.read_data(data_dir=DATA_DIR, datasets=DATASETS)
+in_frame = prep.read_data(preprocessed=True)
 
 ###### Preprocess data
-
-# TO EDIT/DISCUSS: this function only returns basic 'tokens' column for
-# 'GLoVe' or None language models.
-# Determin whether to move other preprocessing tasks here:
-# padding/truncating, creating vocabulary, logging special tokens, embedding.
-in_frame = cog_prep_data.tokenize_data(in_frame, lang_model=lang_model)
+in_frame = prep.tokenize(in_frame)
 
 # Split dataset into training / validation / test sets
-train_frame, val_frame, test_frame = cog_prep_data.split_data(in_frame,
-                                                              train_fraction=train_fraction,
-                                                              val_fraction=val_fraction,
-                                                              test_fraction=test_fraction)
-
-###### Prepare dataloader
-# we define a custom text dataset for use with all models 
-class CognitiveDataset(torch.utils.data.Dataset):
-    def __init__(self, in_frame, max_len, vocab_size=2000, vocab=None, embeddings=None, embed_mode=None):
-        '''
-        in_frame - a dataframe with columns defined above 
-        max_len - number of tokens to crop/pad sentences to
-        vocab_size - will reduce the number of words to this value
-        vocab - either a torchtext.vocab.Vocab object, or None to build one
-        embeddings - if embed_mode is 'token' or 'utterance', used to create word embeddings
-        embed_mode: 
-            'token' - embed each token, return as tensor of shape(max_len, emb_dim)
-            'utterance' - embed each utterance, return as tensor of shape (max_len)
-            None - no embedding. return utterance as list of ints of length max_len
-        '''
-        
-        self.utterances = in_frame['tokens'].to_list()
-        self.labels = in_frame[SCHEMAS].to_numpy()
-        self.vocab_size = vocab_size
-        self.max_len = max_len
-
-        # Dictionaries
-        self.vocab = vocab
-        if vocab is None:
-            self.build_vocab(embeddings)
-        
-        assert embed_mode in {'token', 'utterance', None}
-        self.embed_mode = embed_mode 
-        
-        # Convert text to indices
-        self.textual_ids = []
-        self.convert_text()
-
-    def build_vocab(self, embeddings): 
-        '''
-        Build torch dictionary. This is only called when split='train', as the 
-        vocab is passed in to the __init__(...) function otherwise. 
-        '''        
-        # Count the frequencies of all words in the training data 
-        token_list = []
-
-        for utterance in self.utterances:
-            token_list.extend(utterance)
-        
-        #note that torchtext.vocab.vocab works for chars. To work with strings, 
-        # add double nested list 
-        token_list_list = [[token] for token in token_list]
-            
-        self.vocab = torchtext.vocab.build_vocab_from_iterator(token_list_list, 
-                           max_tokens=self.vocab_size,
-                           specials=[UNK, END, PAD])
-        self.vocab.set_default_index(self.vocab[UNK])
-        
-        
-        #Get the relevent rows in GLoVE, and match their indices with
-        #the indices in our vocab https://github.com/pytorch/text/issues/1350
-        self.embed_vec = embeddings.get_vecs_by_tokens(self.vocab.get_itos())
-        
-        #tfidf_vectorizer = TfidfVectorizer(input='filename', stop_words='english')
-
-        #tfidf_vector = tfidf_vectorizer.fit_transform(text_files)
-        
-
-    def convert_text(self):
-        '''
-        Convert each utterance to a list of indices
-        '''
-        for utterance in self.utterances:
-            idx_list = [self.vocab[token] for token in utterance]
-                  
-            self.textual_ids.append(idx_list)
-                       
-
-    def get_text(self, idx):
-        '''
-        Return the utterance per the type of ebedding specified
-        Adds padding as required
-        '''
-        indices = self.textual_ids[idx]
-
-        if self.embed_mode is None: 
-            #no embedding required, return just indices, but pad to correct length 
-            
-            indices.append(self.vocab[END])
-            idx_len = len(indices)
-            
-            if idx_len > self.max_len:
-                #too long, trim
-                indices = indices[:self.max_len]
-
-            elif idx_len < self.max_len:
-                #too short, add padding
-                indices += [self.vocab[PAD]] * (self.max_len - idx_len)
-                        
-            return torch.LongTensor(indices)
-        
-        elif self.embed_mode == 'utterance':
-            
-            #get tensor 
-            embed_matrix = self.embed_vec[indices]
-            
-            out = embed_matrix.mean(dim=0)
-            
-            return out
-            
-        
-    def get_label(self, idx):
-        '''
-        Return labels as a long vector 
-        '''
-        return torch.FloatTensor(self.labels[idx])
-
-    def __len__(self):
-        '''
-        Return the number of utterances in the dataset
-        '''
-        return len(self.utterances)
-    
-    def __getitem__(self, idx):
-        '''
-        Return the utterance, and label of the review specified by idx.
-        '''
-        return self.get_text(idx), self.get_label(idx)
-
-# Routine to generate dataloader
-
-def create_dataloader(dataset, batch_size=32, shuffle=False):
-    '''
-    Return a dataloader for the specified dataset and batch size.
-    Very similar to most CS 598 DLH homework problems.
-    '''
-    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
-
+train_frame, val_frame, test_frame = prep.split_data(in_frame,
+                                                    train_fraction=GLOB.train_fraction,
+                                                    val_fraction=GLOB.val_fraction,
+                                                    test_fraction=GLOB.test_fraction)
+###### Prepare data
 #Load GLoVe embeddings
 embedding_glove = GloVe(name='6B', dim=100)
 
-train_set = CognitiveDataset(train_frame, 
+train_set = prep.TokenDataset(train_frame, 
                              max_len=25,
                              vocab_size=2000,
                              vocab=None,
-                             embeddings=embedding_glove,
-                             embed_mode=None)
+                             embeddings=embedding_glove)
 
-train_set_utterance = CognitiveDataset(train_frame, 
-                             max_len=25,
-                             vocab_size=2000,
-                             vocab=None,
-                             embeddings=embedding_glove,
-                             embed_mode='utterance')
-
-val_set = CognitiveDataset(val_frame, 
+val_set = prep.TokenDataset(val_frame, 
                              max_len=25,
                              vocab_size=2000,
                              vocab=train_set.vocab,
-                             embeddings=embedding_glove,
-                             embed_mode=None)
+                             embeddings=embedding_glove)
 
-test_set = CognitiveDataset(test_frame, 
+test_set = prep.TokenDataset(test_frame, 
                              max_len=25,
                              vocab_size=2000,
                              vocab=train_set.vocab,
-                             embeddings=embedding_glove,
-                             embed_mode=None)
-
+                             embeddings=embedding_glove)
 
 # Create dataloaders for our three datasets
-train_loader = create_dataloader(train_set, shuffle=True)
-val_loader = create_dataloader(val_set, shuffle=False)
+train_loader = prep.create_dataloader(train_set, shuffle=True)
+val_loader = prep.create_dataloader(val_set, shuffle=False)
 # For test_set, return entire set from dataloader
-test_loader = create_dataloader(test_set, batch_size=len(test_set), shuffle=False)
+test_loader = prep.create_dataloader(test_set, batch_size=len(test_set), shuffle=False)
 
 ###### Evaluation routines
 
@@ -277,13 +105,13 @@ def spearman_r(X, Y):
     p_array = np.zeros(X.shape[1])
 
     # Compute coefficient over each schema and save
-    for schema in range(len(SCHEMAS)):
+    for schema in range(len(GLOB.SCHEMAS)):
         rho, p_val = spearmanr(X[:, schema], Y[:, schema])
         rho_array[schema] = rho
         p_array[schema] = p_val
 
     return pd.DataFrame({
-        "schema": SCHEMAS,
+        "schema": GLOB.SCHEMAS,
         "estimate": rho_array.tolist(),
         "p": p_array.tolist()})
 
@@ -305,7 +133,7 @@ class MultiLabelRNN(nn.Module):
     output layer, with sigmoid activation.
     '''
     
-    def __init__(self, vocab_size, embeddings=None, pad_idx=None, hidden_size=100, dropout=0.5, num_labels=len(SCHEMAS)):
+    def __init__(self, vocab_size, embeddings=None, pad_idx=None, hidden_size=100, dropout=0.5, num_labels=len(GLOB.SCHEMAS)):
         super().__init__()
                 
         if embeddings is not None:
@@ -377,10 +205,10 @@ class PerSchemaRNN(nn.Module):
 
 mlm_starter_RNN = MultiLabelRNN(vocab_size=len(train_set.vocab), 
                                 embeddings=train_set.embed_vec, 
-                                pad_idx=train_set.vocab[PAD],
+                                pad_idx=train_set.vocab[GLOB.PAD],
                                 hidden_size=100, 
                                 dropout=0.1, 
-                                num_labels=len(SCHEMAS))
+                                num_labels=len(GLOB.SCHEMAS))
 # Original Keras model used categorical cross-entropy loss.
 loss_func = nn.CrossEntropyLoss()  
 optimizer = torch.optim.Adam(mlm_starter_RNN.parameters(), lr=0.002)

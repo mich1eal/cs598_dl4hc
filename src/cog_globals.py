@@ -25,6 +25,7 @@ CUSTOM_DATASETS = ['H1_custom']
 UNK = '<UNK>' #not used in nominal model 
 END = '<END>'
 PAD = '<PAD>'
+SPECIAL_TOKENS = [UNK, END, PAD]
 
 # Used for creating BERT-tokenized utterances.
 # The encode_plus() method uses these automatically; they are here for reference.
@@ -40,31 +41,3 @@ train_fraction = 1 - test_fraction - val_fraction
 
 max_utt_length = 25
 max_vocab_size = 2000
-
-# Return globals appropriate to the specified language model.
-
-def return_globals(use_custom_dataset=False, lang_model=None):
-    '''
-    Given a language model name, return a dict of settings appropriate for that model.
-    
-    '''
-    
-    globals_dict = {
-        'SCHEMAS': SCHEMAS,
-        'DATA_DIR': DATA_DIR,
-        'test_fraction': test_fraction,
-        'val_fraction': val_fraction,
-        'train_fraction': train_fraction
-        }
-        
-    globals_dict['DATASETS'] = CUSTOM_DATASETS if use_custom_dataset else DEFAULT_DATASETS
-    
-    if lang_model is None or lang_model != 'BERT':
-        globals_dict['UNK'] = UNK
-        globals_dict['END'] = END
-        globals_dict['PAD'] = PAD
-        globals_dict['special_tokens'] = [UNK, END, PAD]
-        globals_dict['max_utt_length'] = max_utt_length
-        globals_dict['max_vocab_size'] = max_vocab_size
-
-    return globals_dict

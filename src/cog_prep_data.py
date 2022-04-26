@@ -19,53 +19,243 @@ For dependencies, and data acquisition instructions, please see this repository'
 
 import pandas as pd
 # Get tokenizers for each potential language model
-from torchtext.data import get_tokenizer
 from transformers import BertTokenizer
+import torch
+from torch.utils.data import DataLoader, Dataset
+import torchtext
+import cog_globals as GLOB
 
-def read_data(data_dir='../data/DatasetsForH1', datasets=['H1_test', 'H1_train', 'H1_validate']):
+# Routine to generate dataloader
+def create_dataloader(dataset, batch_size=32, shuffle=False):
+    '''
+    Return a dataloader for the specified dataset and batch size.
+    Very similar to most CS 598 DLH homework problems.
+    '''
+    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+
+class TokenDataset(Dataset):
+    def __init__(self, in_frame, max_len, vocab_size=2000, vocab=None, embeddings=None):
+        '''
+        Torch Dataset that embeds at the token level
+        in_frame - a dataframe with columns defined above 
+        max_len - number of tokens to crop/pad sentences to
+        vocab_size - will reduce the number of words to this value
+        vocab - either a torchtext.vocab.Vocab object, or None to build one
+        embeddings - a torchtext.Vocab.Vector object or None for indices
+        '''
+        
+        self.utterances = in_frame['tokens'].to_list()
+        self.labels = in_frame[GLOB.SCHEMAS].to_numpy()
+        self.vocab_size = vocab_size
+        self.max_len = max_len
+
+        # Dictionaries
+        self.vocab = vocab
+        if vocab is None:
+            self.build_vocab(embeddings)
+        
+        # Convert text to indices
+        self.textual_ids = []
+        self.convert_text()
+
+    def build_vocab(self, embeddings): 
+        '''
+        Build torch dictionary. This is only called when split='train', as the 
+        vocab is passed in to the __init__(...) function otherwise. 
+        '''        
+        # Count the frequencies of all words in the training data 
+        token_list = []
+        for utterance in self.utterances:
+            token_list.extend(utterance)
+        
+        #note that torchtext.vocab.vocab works for chars. To work with strings, 
+        # add double nested list 
+        token_list_list = [[token] for token in token_list]
+            
+        self.vocab = torchtext.vocab.build_vocab_from_iterator(token_list_list, 
+                           max_tokens=self.vocab_size,
+                           specials=[GLOB.UNK, GLOB.END, GLOB.PAD])
+        self.vocab.set_default_index(self.vocab[GLOB.UNK])
+        
+        if embeddings is not None:
+            #Get the relevent rows in GLoVE, and match their indices with
+            #the indices in our vocab https://github.com/pytorch/text/issues/1350
+            self.embed_vec = embeddings.get_vecs_by_tokens(self.vocab.get_itos())
+
+    def convert_text(self):
+        '''
+        Convert each utterance to a list of indices
+        '''
+        for utterance in self.utterances:
+            idx_list = [self.vocab[token] for token in utterance]
+            self.textual_ids.append(idx_list)
+
+    def get_text(self, idx):
+        '''
+        Return the utterance per the type of ebedding specified
+        Adds padding as required
+        '''
+        indices = self.textual_ids[idx]
+
+            #no embedding required, return just indices, but pad to correct length 
+            
+        indices.append(self.vocab[GLOB.END])
+        idx_len = len(indices)
+        
+        if idx_len > self.max_len:
+            #too long, trim
+            indices = indices[:self.max_len]
+
+        elif idx_len < self.max_len:
+            #too short, add padding
+            indices += [self.vocab[GLOB.PAD]] * (self.max_len - idx_len)
+                    
+        return torch.LongTensor(indices)
+        
+    def get_label(self, idx):
+        '''
+        Return labels as a long vector 
+        '''
+        return torch.FloatTensor(self.labels[idx])
+
+    def __len__(self):
+        '''
+        Return the number of utterances in the dataset
+        '''
+        return len(self.utterances)
+    
+    def __getitem__(self, idx):
+        '''
+        Return the utterance, and label of the review specified by idx.
+        '''
+        return self.get_text(idx), self.get_label(idx)
+
+class UtteranceDataset(Dataset):
+    def __init__(self, in_frame, max_len, vocab_size=2000, embeddings=None):
+        '''
+        Torch Dataset that embeds at the utterance level
+        in_frame - a dataframe with columns defined above 
+        max_len - number of tokens to crop/pad sentences to
+        vocab_size - will reduce the number of words to this value
+        vocab - either a torchtext.vocab.Vocab object, or None to build one
+        embeddings - a torchtext.Vocab.Vector object or None for indices
+        '''
+        
+        self.utterances = in_frame['tokens'].to_list()
+        self.labels = in_frame[GLOB.SCHEMAS].to_numpy()
+        self.vocab_size = vocab_size
+        self.max_len = max_len
+
+        # Dictionaries
+        self.vocab = vocab
+        if vocab is None:
+            self.build_vocab(embeddings)
+        
+        # Convert text to indices
+        self.textual_ids = []
+        self.convert_text()
+
+    def build_vocab(self, embeddings): 
+        '''
+        Build torch dictionary. This is only called when split='train', as the 
+        vocab is passed in to the __init__(...) function otherwise. 
+        '''        
+        # Count the frequencies of all words in the training data 
+        token_list = []
+        for utterance in self.utterances:
+            token_list.extend(utterance)
+        
+        #note that torchtext.vocab.vocab works for chars. To work with strings, 
+        # add double nested list 
+        token_list_list = [[token] for token in token_list]
+            
+        self.vocab = torchtext.vocab.build_vocab_from_iterator(token_list_list, 
+                           max_tokens=self.vocab_size,
+                           specials=[GLOB.UNK, GLOB.END, GLOB.PAD])
+        self.vocab.set_default_index(self.vocab[GLOB.UNK])
+        
+        if embeddings is not None:
+            #Get the relevent rows in GLoVE, and match their indices with
+            #the indices in our vocab https://github.com/pytorch/text/issues/1350
+            self.embed_vec = embeddings.get_vecs_by_tokens(self.vocab.get_itos())
+
+    def convert_text(self):
+        '''
+        Convert each utterance to a list of indices
+        '''
+        for utterance in self.utterances:
+            idx_list = [self.vocab[token] for token in utterance]
+            self.textual_ids.append(idx_list)
+
+    def get_text(self, idx):
+        '''
+        Return the utterance per the type of ebedding specified
+        Adds padding as required
+        '''
+        indices = self.textual_ids[idx]
+
+            #no embedding required, return just indices, but pad to correct length 
+            
+        indices.append(self.vocab[GLOB.END])
+        idx_len = len(indices)
+        
+        if idx_len > self.max_len:
+            #too long, trim
+            indices = indices[:self.max_len]
+
+        elif idx_len < self.max_len:
+            #too short, add padding
+            indices += [self.vocab[GLOB.PAD]] * (self.max_len - idx_len)
+                    
+        return torch.LongTensor(indices)
+        
+    def get_label(self, idx):
+        '''
+        Return labels as a long vector 
+        '''
+        return torch.FloatTensor(self.labels[idx])
+
+    def __len__(self):
+        '''
+        Return the number of utterances in the dataset
+        '''
+        return len(self.utterances)
+    
+    def __getitem__(self, idx):
+        '''
+        Return the utterance, and label of the review specified by idx.
+        '''
+        return self.get_text(idx), self.get_label(idx)
+
+def read_data(preprocessed=True):
     '''
     Read data and label files for cognitive therapy paper.
-    Assumes each filename ends with either '_data.csv' or '_labels.csv'.
     Input:
-        data_dir: location of files
-        datasets: list of strings to match files by. Each string matches a data file plus a label file.
+        preprocessed - True to use paper preprocessing
+            False to use custom preprocessing
+        
     Output: single combined file of data and labels
     '''
+    if preprocessed:
+        # Use the authors original preprocessed data
+        label_frames = []
+        for dataset in GLOB.DEFAULT_DATASETS: 
+            file_path = '{}/{}_labels.csv'.format(GLOB.DATA_DIR, dataset)
+            label_frames.append(pd.read_csv(file_path, sep=';', header=0))
     
-    label_frames = []
-    for dataset in datasets: 
-        file_path = '{}/{}_labels.csv'.format(data_dir, dataset)
-        label_frames.append(pd.read_csv(file_path, sep=';', header=0))
-
-    # read in all texts 
-    text_frames = []
-    for dataset in datasets: 
-        file_path = '{}/{}_texts.csv'.format(data_dir, dataset)
-        text_frames.append(pd.read_csv(file_path, sep=';', header=0))
-
-    # we combine all data into one dataframe for convenient preprocessing 
-    label_frame = pd.concat(label_frames, axis=0)
-    text_frame = pd.concat(text_frames, axis=0)
-
-    return pd.concat([text_frame, label_frame], axis=1)
-
-def return_tokenizer(lang_model=None):
-    '''
-    Return tokenizer for the specified language model.
-    If BERT, return BERT's base-uncased tokenizer.
-    Otherwise return torchtext's basic-english tokenizer.
+        # read in all texts 
+        text_frames = []
+        for dataset in GLOB.DEFAULT_DATASETS: 
+            file_path = '{}/{}_texts.csv'.format(GLOB.DATA_DIR, dataset)
+            text_frames.append(pd.read_csv(file_path, sep=';', header=0))
     
-    Input: lang_model: 'BERT', 'GLoVe', None
-    Output: tokenizer
-    '''
-    if lang_model == 'BERT':
-        return BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
-    else:  # Else return torchtext tokenizer
-        return get_tokenizer('basic_english', language='en')
+        # we combine all data into one dataframe for convenient preprocessing 
+        label_frame = pd.concat(label_frames, axis=0)
+        text_frame = pd.concat(text_frames, axis=0)
+    
+        return pd.concat([text_frame, label_frame], axis=1)
 
-  
-def tokenize_data(dataframe,
-                  lang_model=None,
+def tokenize_bert(dataframe,
                   max_length=25,
                   pad=True,
                   add_special_tokens=False,
@@ -74,55 +264,58 @@ def tokenize_data(dataframe,
     '''
     Given a dataframe that includes utterances, add a 'tokens' column
     that contains a tokenized list of utterances.
-    If BERT is the language model, also return a 'masks' column containing a list of masks.
+    Also return a 'masks' column containing a list of masks.
 
     Inputs:
         dataframe: the source dataframe. Must contain an 'Utterance' column.
-        lang_model: 'GLoVe', 'BERT', or None.
         max_length: maximum length to pad utterance to.
         pad: whether to pad each utterance to max_length.
         add_special_tokens: True to incorporate special tokens into utterance.
         special_tokens: list of special tokens, if required.
             list not required for BERT, which will always use [CLS] and [SEP].
         default_token: default for tokens outside vocabulary. Not required for BERT.
-    Outputs: the input dataframe with new 'tokens' column, plus 'masks' column if language model is BERT.
+    Outputs: the input dataframe with new 'tokens' column, plus 'masks' column.
     '''
-    tokenizer = return_tokenizer(lang_model)
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
     tokens = []
+    masks = []
 
     # Tokenize for BERT.
     # Code borrowed from http://mccormickml.com/2019/07/22/BERT-fine-tuning/#51-data-preparation
-    if lang_model == 'BERT':
-        masks = []
-        
-        for utterance in dataframe['Utterance']:
+    for utterance in dataframe['Utterance']:
+        encoded_dict = tokenizer.encode_plus(
+                    utterance,                                # Sentence to encode.
+                    add_special_tokens = add_special_tokens,  # Add '[CLS]' and '[SEP]'
+                    max_length = max_length,                  # Pad & truncate all sentences.
+                    pad_to_max_length = pad,
+                    return_attention_mask = True              # Construct attn. masks.
+                    #return_tensors = 'pt',                   # Uncomment to return PyTorch tensors instead of lists                   )
+        )
 
-            encoded_dict = tokenizer.encode_plus(
-                        utterance,                                # Sentence to encode.
-                        add_special_tokens = add_special_tokens,  # Add '[CLS]' and '[SEP]'
-                        max_length = max_length,                  # Pad & truncate all sentences.
-                        pad_to_max_length = pad,
-                        return_attention_mask = True              # Construct attn. masks.
-                        #return_tensors = 'pt',                   # Uncomment to return PyTorch tensors instead of lists                   )
-            )
-
-            tokens.append(encoded_dict['input_ids'])
-            masks.append(encoded_dict['attention_mask'])
-            
-        dataframe['tokens'] = tokens
-        dataframe['masks'] = masks
+        tokens.append(encoded_dict['input_ids'])
+        masks.append(encoded_dict['attention_mask'])
         
-    # For other language model or no language model, use torchtext tokenizer.
-    # NOT IMPLEMENTED, TO DISCUSS: whether to do remaining tokenization tasks:
-    #truncation, padding, adding special characters, or whether to do them in CognitiveDataset.
-    # This first requires building a vocabulary.
-    # 
-    else:
-        dataframe['tokens'] = [tokenizer(utterance) for utterance in dataframe['Utterance']]
+    dataframe['tokens'] = tokens
+    dataframe['masks'] = masks
+    return dataframe
+
+def tokenize(dataframe):
+    '''
+    Given a dataframe that includes utterances, add a 'tokens' column
+    that contains a tokenized list of utterances.
+    
+    Inputs:
+        dataframe: the source dataframe. Must contain an 'Utterance' column.
+    Outputs: the input dataframe with new 'tokens' column.
+    '''
+    # we will tokenize using pytorch utility function
+    tokenize = torchtext.data.get_tokenizer('basic_english', language='en')
+    # lists of tokens are re-added to our dataframe 
+    dataframe['tokens'] = [tokenize(sentence) for sentence in dataframe['Utterance']]
     
     return dataframe
 
-def split_data(dataframe, train_fraction=0.7225, val_fraction=0.1275, test_fraction=0.15):
+def split_data(dataframe, train_fraction=GLOB.train_fraction, val_fraction=GLOB.val_fraction, test_fraction=GLOB.test_fraction):
     '''
     Given a dataframe, return training, validation and test splits
     with the specified proportions.
@@ -136,14 +329,3 @@ def split_data(dataframe, train_fraction=0.7225, val_fraction=0.1275, test_fract
     test_frame = dataframe.iloc[split_val:]
     
     return (train_frame, val_frame, test_frame)
-
-
-def embed_data():
-    '''
-    Given tokenized input and a vocabulary, return embeddings.
-    NOT IMPLEMENTED YET.
-
-    This is only needed for GLoVe or index-based embeddings.
-    With BERT models, don't need to deal directly with embeddings.
-
-    '''
