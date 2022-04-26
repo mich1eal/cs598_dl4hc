@@ -64,6 +64,12 @@ train_set = prep.TokenDataset(train_frame,
                              vocab=None,
                              embeddings=embedding_glove)
 
+train_set_utterance = prep.UtteranceDataset(train_frame, 
+                                            max_len=25,
+                                            vocab_size=2000,
+                                            vocab=None,
+                                            embeddings=embedding_glove)
+
 val_set = prep.TokenDataset(val_frame, 
                              max_len=25,
                              vocab_size=2000,

@@ -24,6 +24,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 import torchtext
 import cog_globals as GLOB
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Routine to generate dataloader
 def create_dataloader(dataset, batch_size=32, shuffle=False):
@@ -131,7 +132,7 @@ class TokenDataset(Dataset):
         return self.get_text(idx), self.get_label(idx)
 
 class UtteranceDataset(Dataset):
-    def __init__(self, in_frame, max_len, vocab_size=2000, embeddings=None):
+    def __init__(self, in_frame, max_len, vocab_size=2000, vocab=None, embeddings=None):
         '''
         Torch Dataset that embeds at the utterance level
         in_frame - a dataframe with columns defined above 
@@ -141,51 +142,34 @@ class UtteranceDataset(Dataset):
         embeddings - a torchtext.Vocab.Vector object or None for indices
         '''
         
-        self.utterances = in_frame['tokens'].to_list()
         self.labels = in_frame[GLOB.SCHEMAS].to_numpy()
         self.vocab_size = vocab_size
         self.max_len = max_len
-
+        
+        utterance_list = in_frame.Utterance.to_list()
+        tfidf = TfidfVectorizer(max_features=vocab_size, use_idf=True)
+        features = tfidf.fit_transform(utterance_list).todense()
+        keys = tfidf.get_feature_names()
+        
         # Dictionaries
         self.vocab = vocab
         if vocab is None:
-            self.build_vocab(embeddings)
+            self.build_vocab()
         
         # Convert text to indices
         self.textual_ids = []
         self.convert_text()
 
-    def build_vocab(self, embeddings): 
+    def build_vocab(self): 
         '''
         Build torch dictionary. This is only called when split='train', as the 
         vocab is passed in to the __init__(...) function otherwise. 
         '''        
-        # Count the frequencies of all words in the training data 
-        token_list = []
-        for utterance in self.utterances:
-            token_list.extend(utterance)
-        
-        #note that torchtext.vocab.vocab works for chars. To work with strings, 
-        # add double nested list 
-        token_list_list = [[token] for token in token_list]
-            
-        self.vocab = torchtext.vocab.build_vocab_from_iterator(token_list_list, 
-                           max_tokens=self.vocab_size,
-                           specials=[GLOB.UNK, GLOB.END, GLOB.PAD])
-        self.vocab.set_default_index(self.vocab[GLOB.UNK])
-        
-        if embeddings is not None:
-            #Get the relevent rows in GLoVE, and match their indices with
-            #the indices in our vocab https://github.com/pytorch/text/issues/1350
-            self.embed_vec = embeddings.get_vecs_by_tokens(self.vocab.get_itos())
 
     def convert_text(self):
         '''
         Convert each utterance to a list of indices
         '''
-        for utterance in self.utterances:
-            idx_list = [self.vocab[token] for token in utterance]
-            self.textual_ids.append(idx_list)
 
     def get_text(self, idx):
         '''
@@ -241,13 +225,15 @@ def read_data(preprocessed=True):
         label_frames = []
         for dataset in GLOB.DEFAULT_DATASETS: 
             file_path = '{}/{}_labels.csv'.format(GLOB.DATA_DIR, dataset)
-            label_frames.append(pd.read_csv(file_path, sep=';', header=0))
+            frame = pd.read_csv(file_path, sep=';', header=0)
+            label_frames.append(frame)
     
         # read in all texts 
         text_frames = []
         for dataset in GLOB.DEFAULT_DATASETS: 
             file_path = '{}/{}_texts.csv'.format(GLOB.DATA_DIR, dataset)
-            text_frames.append(pd.read_csv(file_path, sep=';', header=0))
+            frame = pd.read_csv(file_path, sep=';', header=0)
+            text_frames.append(frame)
     
         # we combine all data into one dataframe for convenient preprocessing 
         label_frame = pd.concat(label_frames, axis=0)
