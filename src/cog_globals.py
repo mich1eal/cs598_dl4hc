@@ -13,6 +13,9 @@ Data repo: https://github.com/mich1eal/cs598_dl4hc
 For dependencies, and data acquisition instructions, please see this repository's readme
 """
 
+# To set random seed
+seed = 24
+
 # Column names for schema ratings
 SCHEMAS = ["Attach","Comp","Global","Health","Control","MetaCog","Others","Hopeless","OthViews"]
 
@@ -41,3 +44,6 @@ train_fraction = 1 - test_fraction - val_fraction
 
 max_utt_length = 25
 max_vocab_size = 2000
+
+# Embedding dimensions for GLoVe
+glove_embed_dim = 100

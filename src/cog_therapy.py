@@ -37,11 +37,10 @@ import cog_globals as GLOB
 import cog_prep_data as prep
 
 # Set seed. Copied from HW3 RNN notebook.
-seed = 24
-#random.seed(seed)
-np.random.seed(seed)
-torch.manual_seed(seed)
-#os.environ["PYTHONHASHSEED"] = str(seed)
+#random.seed(GLOB.seed)
+np.random.seed(GLOB.seed)
+torch.manual_seed(GLOB.seed)
+#os.environ["PYTHONHASHSEED"] = str(GLOB.seed)
 
 ###### Load data
 in_frame = prep.read_data(preprocessed=True)
@@ -56,29 +55,29 @@ train_frame, val_frame, test_frame = prep.split_data(in_frame,
                                                     test_fraction=GLOB.test_fraction)
 ###### Prepare data
 #Load GLoVe embeddings
-embedding_glove = GloVe(name='6B', dim=100)
+embedding_glove = GloVe(name='6B', dim=GLOB.glove_embed_dim)
 
 train_set = prep.TokenDataset(train_frame, 
-                             max_len=25,
-                             vocab_size=2000,
+                             max_len=GLOB.max_utt_length,
+                             vocab_size=GLOB.max_vocab_size,
                              vocab=None,
                              embeddings=embedding_glove)
 
 train_set_utterance = prep.UtteranceDataset(train_frame, 
-                                            max_len=25,
-                                            vocab_size=2000,
+                                            max_len=GLOB.max_utt_length,
+                                            vocab_size=GLOB.max_vocab_size,
                                             vocab=None,
                                             embeddings=embedding_glove)
 
 val_set = prep.TokenDataset(val_frame, 
-                             max_len=25,
-                             vocab_size=2000,
+                             max_len=GLOB.max_utt_length,
+                             vocab_size=GLOB.max_vocab_size,
                              vocab=train_set.vocab,
                              embeddings=embedding_glove)
 
 test_set = prep.TokenDataset(test_frame, 
-                             max_len=25,
-                             vocab_size=2000,
+                             max_len=GLOB.max_utt_length,
+                             vocab_size=GLOB.max_vocab_size,
                              vocab=train_set.vocab,
                              embeddings=embedding_glove)
 
@@ -139,14 +138,14 @@ class MultiLabelRNN(nn.Module):
     output layer, with sigmoid activation.
     '''
     
-    def __init__(self, vocab_size, embeddings=None, pad_idx=None, hidden_size=100, dropout=0.5, num_labels=len(GLOB.SCHEMAS)):
+    def __init__(self, vocab_size, embeddings=None, pad_idx=None, hidden_size=GLOB.glove_embed_dim, dropout=0.5, num_labels=len(GLOB.SCHEMAS)):
         super().__init__()
                 
         if embeddings is not None:
             embed_size = len(embeddings[0])
             self.embedding = nn.Embedding.from_pretrained(embeddings, padding_idx=pad_idx, freeze=True)
         else:
-            embed_size = 100
+            embed_size = GLOB.glove_embed_dim
             self.embedding = nn.Embedding(vocab_size, embed_size, padding_idx=pad_idx)
         
         self.lstm = nn.LSTM(input_size=embed_size, hidden_size=hidden_size, num_layers=1,
@@ -178,14 +177,14 @@ class PerSchemaRNN(nn.Module):
     rating scale for how well a thought record corresponds to a schema.
     '''
 
-    def __init__(self, vocab_size, embeddings=None, pad_idx=None, hidden_size=100, dropout=0.5, num_label_vals=4):
+    def __init__(self, vocab_size, embeddings=None, pad_idx=None, hidden_size=GLOB.glove_embed_dim, dropout=0.5, num_label_vals=4):
         super().__init__()
                 
         if embeddings is not None:
             embed_size = len(embeddings[0])
             self.embedding = nn.Embedding.from_pretrained(embeddings, padding_idx=pad_idx, freeze=True)
         else:
-            embed_size = 100
+            embed_size = GLOB.glove_embed_dim
             self.embedding = nn.Embedding(vocab_size, embed_size, padding_idx=pad_idx)
         
         self.lstm = nn.LSTM(input_size=embed_size, hidden_size=hidden_size, num_layers=1,
@@ -212,7 +211,7 @@ class PerSchemaRNN(nn.Module):
 mlm_starter_RNN = MultiLabelRNN(vocab_size=len(train_set.vocab), 
                                 embeddings=train_set.embed_vec, 
                                 pad_idx=train_set.vocab[GLOB.PAD],
-                                hidden_size=100, 
+                                hidden_size=GLOB.glove_embed_dim, 
                                 dropout=0.1, 
                                 num_labels=len(GLOB.SCHEMAS))
 # Original Keras model used categorical cross-entropy loss.
