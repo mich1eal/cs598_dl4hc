@@ -25,6 +25,9 @@ from torch.utils.data import DataLoader, Dataset
 import torchtext
 import cog_globals as GLOB
 from sklearn.feature_extraction.text import TfidfVectorizer
+from autocorrect import Speller
+spell = Speller(lang='en')
+
 
 # Routine to generate dataloader
 def create_dataloader(dataset, batch_size=32, shuffle=False):
@@ -211,6 +214,17 @@ class UtteranceDataset(Dataset):
         '''
         return self.get_text(idx), self.get_label(idx)
 
+def clean(row):
+    '''
+    Make sentence lowercase, strip extra whitespace, run spell check
+    '''
+    text = row['Reply']
+    text = text.lower().strip()
+    
+    corrected = spell(text)
+    
+    return corrected
+
 def read_data(preprocessed=True):
     '''
     Read data and label files for cognitive therapy paper.
@@ -240,7 +254,24 @@ def read_data(preprocessed=True):
         text_frame = pd.concat(text_frames, axis=0)
     
         return pd.concat([text_frame, label_frame], axis=1)
-
+    else: 
+        # use the authors raw data 
+        file_path = '{}/CoreData.csv'.format(GLOB.DATA_DIR)
+        raw_frame = pd.read_csv(file_path, sep=';', header=0)
+        
+        #discard rows that the authors excluded because they don't have enough data
+        raw_frame = raw_frame[raw_frame['Exclude'] == 0]
+        raw_frame['Utterance'] = raw_frame.apply(lambda row: clean(row),axis=1)
+        
+        #only keep rows that we need
+        out_frame = raw_frame[['Utterance'] + GLOB.SCHEMAS]
+        
+        #shuffle the frame
+        out_frame = out_frame.sample(frac=1).reset_index(drop=True)
+        
+        return out_frame
+        
+        
 def tokenize_bert(dataframe,
                   max_length=25,
                   pad=True,
