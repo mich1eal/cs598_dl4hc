@@ -59,7 +59,7 @@ embedding_glove = GloVe(name='6B', dim=GLOB.glove_embed_dim)
 
 train_set = prep.TokenDataset(train_frame, 
                              max_len=GLOB.max_utt_length,
-                             vocab_size=GLOB.max_vocab_size,
+                             vocab_size=2100,
                              vocab=None,
                              embeddings=embedding_glove)
 
@@ -71,13 +71,13 @@ train_set_utterance = prep.UtteranceDataset(train_frame,
 
 val_set = prep.TokenDataset(val_frame, 
                              max_len=GLOB.max_utt_length,
-                             vocab_size=GLOB.max_vocab_size,
+                             vocab_size=2100,
                              vocab=train_set.vocab,
                              embeddings=embedding_glove)
 
 test_set = prep.TokenDataset(test_frame, 
                              max_len=GLOB.max_utt_length,
-                             vocab_size=GLOB.max_vocab_size,
+                             vocab_size=2100,
                              vocab=train_set.vocab,
                              embeddings=embedding_glove)
 
