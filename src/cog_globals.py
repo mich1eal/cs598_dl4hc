@@ -19,6 +19,9 @@ seed = 24
 # Column names for schema ratings
 SCHEMAS = ["Attach","Comp","Global","Health","Control","MetaCog","Others","Hopeless","OthViews"]
 
+# List of values for schema correspondence ratings
+RATING_VALS = [0, 1, 2, 3]
+
 #Locations
 DATA_DIR = '../data/DatasetsForH1'
 DEFAULT_DATASETS = ['H1_test', 'H1_train', 'H1_validate']

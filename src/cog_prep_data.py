@@ -18,9 +18,11 @@ For dependencies, and data acquisition instructions, please see this repository'
 """
 
 import pandas as pd
+import numpy as np
 # Get tokenizers for each potential language model
 from transformers import BertTokenizer
 import torch
+import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 import torchtext
 import cog_globals as GLOB
@@ -38,10 +40,11 @@ def create_dataloader(dataset, batch_size=32, shuffle=False):
     return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
 
 class TokenDataset(Dataset):
-    def __init__(self, in_frame, max_len, vocab_size=2000, vocab=None, embeddings=None):
+    def __init__(self, in_frame, schemas=GLOB.SCHEMAS, max_len=GLOB.max_utt_length, vocab_size=GLOB.max_vocab_size, vocab=None, embeddings=None):
         '''
         Torch Dataset that embeds at the token level
         in_frame - a dataframe with columns defined above 
+        schemas - list of schemas to generate labels for. If a single schema, use one-hot encoding of its rating values.
         max_len - number of tokens to crop/pad sentences to
         vocab_size - will reduce the number of words to this value
         vocab - either a torchtext.vocab.Vocab object, or None to build one
@@ -49,7 +52,15 @@ class TokenDataset(Dataset):
         '''
         
         self.utterances = in_frame['tokens'].to_list()
-        self.labels = in_frame[GLOB.SCHEMAS].to_numpy()
+        
+        # For single schema, generate one-hot encoding of rating values for labels
+        if len(schemas) == 1:
+            schema_rating_vals = torch.LongTensor(np.array(in_frame[schemas])).squeeze(dim=1)
+            self.labels = F.one_hot(schema_rating_vals, num_classes=len(GLOB.RATING_VALS)).numpy()
+        # Otherwise use original ratings as labels
+        else:
+            self.labels = in_frame[schemas].to_numpy()
+            
         self.vocab_size = vocab_size
         self.max_len = max_len
 
@@ -135,24 +146,32 @@ class TokenDataset(Dataset):
         return self.get_text(idx), self.get_label(idx)
 
 class UtteranceDataset(Dataset):
-    def __init__(self, in_frame, max_len, vocab_size=2000, vocab=None, embeddings=None):
+    def __init__(self, in_frame, schemas=GLOB.SCHEMAS, max_len=GLOB.max_utt_length, vocab_size=GLOB.max_vocab_size, vocab=None, embeddings=None):
         '''
         Torch Dataset that embeds at the utterance level
         in_frame - a dataframe with columns defined above 
+        schemas - list of schemas to generate labels for. If a single schema, use one-hot encoding of its rating values.
         max_len - number of tokens to crop/pad sentences to
         vocab_size - will reduce the number of words to this value
         vocab - either a torchtext.vocab.Vocab object, or None to build one
         embeddings - a torchtext.Vocab.Vector object or None for indices
         '''
         
-        self.labels = in_frame[GLOB.SCHEMAS].to_numpy()
+        # For single schema, generate one-hot encoding of rating values for labels
+        if len(schemas) == 1:
+            schema_rating_vals = torch.LongTensor(np.array(in_frame[schemas]))
+            self.labels = F.one_hot(schema_rating_vals, num_classes=len(GLOB.RATING_VALS)).numpy()
+        # Otherwise use original ratings as labels
+        else:
+            self.labels = in_frame[schemas].to_numpy()
+
         self.vocab_size = vocab_size
         self.max_len = max_len
         
         utterance_list = in_frame.Utterance.to_list()
         tfidf = TfidfVectorizer(max_features=vocab_size, use_idf=True)
         features = tfidf.fit_transform(utterance_list).todense()
-        keys = tfidf.get_feature_names()
+        keys = tfidf.get_feature_names_out()
         
         # Dictionaries
         self.vocab = vocab
@@ -326,9 +345,9 @@ def tokenize(dataframe):
     Outputs: the input dataframe with new 'tokens' column.
     '''
     # we will tokenize using pytorch utility function
-    tokenize = torchtext.data.get_tokenizer('basic_english', language='en')
+    tokenizer = torchtext.data.get_tokenizer('basic_english', language='en')
     # lists of tokens are re-added to our dataframe 
-    dataframe['tokens'] = [tokenize(sentence) for sentence in dataframe['Utterance']]
+    dataframe['tokens'] = [tokenizer(sentence) for sentence in dataframe['Utterance']]
     
     return dataframe
 
