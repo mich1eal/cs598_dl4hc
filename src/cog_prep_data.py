@@ -28,7 +28,6 @@ import torchtext
 import cog_globals as GLOB
 from tensorflow.keras.preprocessing.text import Tokenizer
 from autocorrect import Speller
-import torch 
 from torch.nn.functional import normalize
 spell = Speller(lang='en')
 

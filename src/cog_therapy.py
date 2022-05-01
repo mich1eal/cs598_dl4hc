@@ -31,8 +31,6 @@ from torchtext.vocab import GloVe
 from sklearn.metrics import mean_absolute_error
 # To compute model goodness-of-fit
 from scipy.stats import spearmanr
-# To compute distance in kNN model
-#from scipy.spatial.distance import cosine
 
 # Local imports to help make scripts more modular.
 import cog_globals as GLOB
