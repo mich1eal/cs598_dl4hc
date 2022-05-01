@@ -1,3 +1,4 @@
+autocorrect==2.6.1
 backcall==0.2.0
 cloudpickle==2.0.0
 colorama==0.4.4
@@ -32,10 +33,12 @@ six==1.16.0
 skorch==0.11.0
 smart-open==5.2.1
 spyder-kernels==2.3.0
+tensorflow==2.8.0
 threadpoolctl==3.1.0
 torch==1.11.0
 torchtext==0.12.0  
 tornado==6.1
 traitlets==5.1.1
+transformers==4.18.0
 typing_extensions==4.1.1
 wcwidth==0.2.5
