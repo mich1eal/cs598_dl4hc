@@ -28,8 +28,6 @@ import torchtext
 import cog_globals as GLOB
 from tensorflow.keras.preprocessing.text import Tokenizer
 from autocorrect import Speller
-import torch 
-from torch.nn.functional import normalize
 spell = Speller(lang='en')
 
 
@@ -202,7 +200,7 @@ class UtteranceDataset(Dataset):
         tfidf = torch.Tensor(self.tfidf_tokenizer.sequences_to_matrix(self.textual_ids, mode='tfidf'))
         
         # Normalize embeddings
-        tfidf = normalize(tfidf, dim=1)
+        tfidf = F.normalize(tfidf, dim=1)
         
         # Make embeddings sum to 1
         tfidf = tfidf / tfidf.sum(dim=1).unsqueeze(-1)
@@ -250,16 +248,7 @@ class UtteranceDataset(Dataset):
         '''
         return self.utterance_embeddings[idx, :], torch.FloatTensor(self.labels[idx])
 
-def clean(row):
-    '''
-    Make sentence lowercase, strip extra whitespace, run spell check
-    '''
-    text = row['Reply']
-    text = text.lower().strip()
-    
-    corrected = spell(text)
-    
-    return corrected
+
 
 def read_data(process_mode=None):
     '''
@@ -295,25 +284,21 @@ def read_data(process_mode=None):
     else: 
         assert process_mode in ['utterance', 'scenario']
         
-        # use the authors raw data 
-        file_path = '{}/CoreData.csv'.format(GLOB.DATA_DIR)
-        raw_frame = pd.read_csv(file_path, sep=';', header=0)
-        
-        #discard rows that the authors excluded because they don't have enough data
-        raw_frame = raw_frame[raw_frame['Exclude'] == 0]
-        raw_frame['Utterance'] = raw_frame.apply(lambda row: clean(row),axis=1)
+        # use custom preprocessed data (see cog_preprocess.py)
+        file_path = '{}/{}'.format(GLOB.DATA_DIR, GLOB.CUSTOM_PREPROCESS)
+        in_frame = pd.read_csv(file_path)
         
         if process_mode == 'scenario':
             #group by participant and and scenario
-            grouped = raw_frame.groupby(['Participant.ID', 'Scenario'], as_index = False)
+            grouped = in_frame.groupby(['Participant.ID', 'Scenario'], as_index = False)
             
-            group_map = {col : 'sum' for col in GLOB.SCHEMAS}
-            group_map['Reply'] = ' '.join
+            group_map = {col : 'mean' for col in GLOB.SCHEMAS}
+            group_map['Utterance'] = ' '.join
             
-            out_frame = grouped.agg(group_map)
-            
+            in_frame = grouped.agg(group_map)
+        
         #only keep rows that we need
-        out_frame = raw_frame[['Utterance'] + GLOB.SCHEMAS]
+        out_frame = in_frame[['Utterance'] + GLOB.SCHEMAS]
         
         #shuffle the frame
         out_frame = out_frame.sample(frac=1).reset_index(drop=True)

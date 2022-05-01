@@ -26,6 +26,7 @@ RATING_VALS = [0, 1, 2, 3]
 DATA_DIR = '../data/DatasetsForH1'
 DEFAULT_DATASETS = ['H1_test', 'H1_train', 'H1_validate']
 CUSTOM_DATASETS = ['H1_custom']
+CUSTOM_PREPROCESS = 'custom_preprocessed.csv'
 
 # used for creating torchtext dictionaries 
 UNK = '<UNK>' #not used in nominal model 
