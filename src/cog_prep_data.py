@@ -245,16 +245,18 @@ def clean(row):
     
     return corrected
 
-def read_data(preprocessed=True):
+def read_data(process_mode=None):
     '''
     Read data and label files for cognitive therapy paper.
     Input:
-        preprocessed - True to use paper preprocessing
-            False to use custom preprocessing
+        process_mode:
+            - None to use authors processing
+            - 'utterance' to keep each utterance as its own line
+            - 'scenario' to concatenate utterances for one participant scenario
         
     Output: single combined file of data and labels
     '''
-    if preprocessed:
+    if not process_mode:
         # Use the authors original preprocessed data
         label_frames = []
         for dataset in GLOB.DEFAULT_DATASETS: 
@@ -275,6 +277,8 @@ def read_data(preprocessed=True):
     
         return pd.concat([text_frame, label_frame], axis=1)
     else: 
+        assert process_mode in ['utterance', 'scenario']
+        
         # use the authors raw data 
         file_path = '{}/CoreData.csv'.format(GLOB.DATA_DIR)
         raw_frame = pd.read_csv(file_path, sep=';', header=0)
@@ -283,14 +287,21 @@ def read_data(preprocessed=True):
         raw_frame = raw_frame[raw_frame['Exclude'] == 0]
         raw_frame['Utterance'] = raw_frame.apply(lambda row: clean(row),axis=1)
         
+        if process_mode == 'scenario':
+            #group by participant and and scenario
+            grouped = raw_frame.groupby(['Participant.ID', 'Scenario'], as_index = False)
+            
+            group_map = {col : 'sum' for col in GLOB.SCHEMAS}
+            group_map['Reply'] = ' '.join
+            
+            out_frame = grouped.agg(group_map)
+            
         #only keep rows that we need
         out_frame = raw_frame[['Utterance'] + GLOB.SCHEMAS]
         
         #shuffle the frame
         out_frame = out_frame.sample(frac=1).reset_index(drop=True)
-        
         return out_frame
-        
         
 def tokenize_bert(dataframe,
                   max_length=25,
