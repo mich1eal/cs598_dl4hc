@@ -4,7 +4,8 @@ CS 598 Deep Learning for Healthcare - University of Illinois
 Final project - Paper Results Verification
 4/4/2022
 
-Reproduce the multi-label RNNs in the paper below.
+A variant of the multi-label RNN from the paper below. All utterances from one 
+subject for one scenario are concattenated, and the scores averaged
 
 Paper: "Natural language processing for cognitive therapy: Extracting schemas from thought records"
 by Franziska Burger, Mark A. Neerincx, and Willem-Paul Brinkman
@@ -44,8 +45,11 @@ np.random.seed(GLOB.seed)
 torch.manual_seed(GLOB.seed)
 #os.environ["PYTHONHASHSEED"] = str(GLOB.seed)
 
+
+
+
 ###### Load data
-in_frame = prep.read_data(process_mode='utterance')
+in_frame = prep.read_data(process_mode='scenario')
 
 ###### Preprocess data
 in_frame = prep.tokenize(in_frame)
@@ -61,40 +65,25 @@ embedding_glove = GloVe(name='6B', dim=GLOB.glove_embed_dim)
 
 train_set = prep.TokenDataset(train_frame, 
                               schemas=GLOB.SCHEMAS,
-                              max_len=GLOB.max_utt_length,
+                              max_len=45,
                               vocab_size=2100,
                               vocab=None,
                               embeddings=embedding_glove)
 
 val_set = prep.TokenDataset(val_frame, 
                             schemas=GLOB.SCHEMAS,
-                            max_len=GLOB.max_utt_length,
+                            max_len=45,
                             vocab_size=2100,
                             vocab=train_set.vocab,
                             embeddings=None)
 
 test_set = prep.TokenDataset(test_frame, 
                              schemas=GLOB.SCHEMAS,
-                             max_len=GLOB.max_utt_length,
+                             max_len=45,
                              vocab_size=2100,
                              vocab=train_set.vocab,
                              embeddings=None)
 
-train_set_utterance = prep.UtteranceDataset(train_frame, 
-                                            schemas=GLOB.SCHEMAS,
-                                            max_len=GLOB.max_utt_length,
-                                            vocab_size=GLOB.max_vocab_size,
-                                            vocab=None,
-                                            tfidf_tokenizer=None,
-                                            embeddings=embedding_glove)
-
-val_set_utterance = prep.UtteranceDataset(val_frame, 
-                                          schemas=GLOB.SCHEMAS,
-                                          max_len=GLOB.max_utt_length,
-                                          vocab_size=GLOB.max_vocab_size,
-                                          vocab=train_set_utterance.vocab,
-                                          tfidf_tokenizer=train_set_utterance.tfidf_tokenizer,
-                                          embeddings=embedding_glove)
 
 # Create dataloaders for our three datasets
 train_loader = prep.create_dataloader(train_set, shuffle=True)
@@ -150,7 +139,7 @@ class MultiLabelRNN(nn.Module):
                 
         if embeddings is not None:
             embed_size = len(embeddings[0])
-            self.embedding = nn.Embedding.from_pretrained(embeddings, padding_idx=pad_idx, freeze=True)
+            self.embedding = nn.Embedding.from_pretrained(embeddings, padding_idx=pad_idx, freeze=False)
         else:
             embed_size = GLOB.glove_embed_dim
             self.embedding = nn.Embedding(vocab_size, embed_size, padding_idx=pad_idx)

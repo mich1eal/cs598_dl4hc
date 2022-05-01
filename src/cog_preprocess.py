@@ -12,7 +12,6 @@ DOI: https://doi.org/10.1371/journal.pone.0257832
 Data repo: https://github.com/mich1eal/cs598_dl4hc
 For dependencies, and data acquisition instructions, please see this repository's readme
 """
-
 import cog_globals as GLOB
 import pandas as pd
 from autocorrect import Speller
@@ -21,11 +20,9 @@ spell = Speller(lang='en')
 #Everything except'.,!?-
 remove_punct = """"#$%&()*+-/:;<=>@[\]^_`{|}~"""
 
-
-
 def clean(row):
     '''
-    Make sentence lowercase, strip extra whitespace, run spell check
+    Make sentence lowercase, strip extra whitespace, delete special characters, run spell check
     '''
     text = row['Reply']
     text = text.lower().strip()

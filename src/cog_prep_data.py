@@ -1,6 +1,4 @@
 """ 
-cog_read.py
-
 Routines to read in, tokenize, split and embed the selected cognitive-therapy dataset.
 Data can be either the authors' original prepreocessed set, or our own
 preprocessed set.
