@@ -4,6 +4,8 @@ CS 598 Deep Learning for Healthcare - University of Illinois
 Final project - Paper Results Verification
 4/4/2022
 
+Reproduce the multi-label RNNs in the paper below.
+
 Paper: "Natural language processing for cognitive therapy: Extracting schemas from thought records"
 by Franziska Burger, Mark A. Neerincx, and Willem-Paul Brinkman
 DOI: https://doi.org/10.1371/journal.pone.0257832
@@ -58,24 +60,28 @@ train_frame, val_frame, test_frame = prep.split_data(in_frame,
 embedding_glove = GloVe(name='6B', dim=GLOB.glove_embed_dim)
 
 train_set = prep.TokenDataset(train_frame, 
-                             max_len=GLOB.max_utt_length,
-                             vocab_size=2100,
-                             vocab=None,
-                             embeddings=embedding_glove)
+                              schemas=GLOB.SCHEMAS,
+                              max_len=GLOB.max_utt_length,
+                              vocab_size=2100,
+                              vocab=None,
+                              embeddings=embedding_glove)
 
 val_set = prep.TokenDataset(val_frame, 
-                             max_len=GLOB.max_utt_length,
-                             vocab_size=2100,
-                             vocab=train_set.vocab,
-                             embeddings=None)
+                            schemas=GLOB.SCHEMAS,
+                            max_len=GLOB.max_utt_length,
+                            vocab_size=2100,
+                            vocab=train_set.vocab,
+                            embeddings=None)
 
 test_set = prep.TokenDataset(test_frame, 
+                             schemas=GLOB.SCHEMAS,
                              max_len=GLOB.max_utt_length,
                              vocab_size=2100,
                              vocab=train_set.vocab,
                              embeddings=None)
 
 train_set_utterance = prep.UtteranceDataset(train_frame, 
+                                            schemas=GLOB.SCHEMAS,
                                             max_len=GLOB.max_utt_length,
                                             vocab_size=GLOB.max_vocab_size,
                                             vocab=None,
@@ -83,11 +89,12 @@ train_set_utterance = prep.UtteranceDataset(train_frame,
                                             embeddings=embedding_glove)
 
 val_set_utterance = prep.UtteranceDataset(val_frame, 
-                                            max_len=GLOB.max_utt_length,
-                                            vocab_size=GLOB.max_vocab_size,
-                                            vocab=train_set_utterance.vocab,
-                                            tfidf_tokenizer=train_set_utterance.tfidf_tokenizer,
-                                            embeddings=embedding_glove)
+                                          schemas=GLOB.SCHEMAS,
+                                          max_len=GLOB.max_utt_length,
+                                          vocab_size=GLOB.max_vocab_size,
+                                          vocab=train_set_utterance.vocab,
+                                          tfidf_tokenizer=train_set_utterance.tfidf_tokenizer,
+                                          embeddings=embedding_glove)
 
 # Create dataloaders for our three datasets
 train_loader = prep.create_dataloader(train_set, shuffle=True)
@@ -128,15 +135,7 @@ def spearman_r(X, Y):
         "estimate": rho_array.tolist(),
         "p": p_array.tolist()})
 
-###### Baseline models
-
-### kNNs
-
-
-
-###### Paper primary model
-
-### Multi-label RNN
+###### Multi-label RNN
 
 class MultiLabelRNN(nn.Module):
     
@@ -171,45 +170,6 @@ class MultiLabelRNN(nn.Module):
                 
         do_out = self.do(lstm_last)
         label_probs = self.sigmoid(self.fc(do_out))
-                
-        return label_probs
-
-### Per-schema RNN
-
-class PerSchemaRNN(nn.Module):
-    '''
-    PyTorch implementation of the researchers' per-schema RNN model.
-    This is a bidirectional LSTM with a dropout layer and a dense
-    output layer, with softmax activation.
-    The dense layer spits out 4 outputs, one for each point on the
-    rating scale for how well a thought record corresponds to a schema.
-    '''
-
-    def __init__(self, vocab_size, embeddings=None, pad_idx=None, hidden_size=GLOB.glove_embed_dim, dropout=0.5, num_label_vals=4):
-        super().__init__()
-                
-        if embeddings is not None:
-            embed_size = len(embeddings[0])
-            self.embedding = nn.Embedding.from_pretrained(embeddings, padding_idx=pad_idx, freeze=True)
-        else:
-            embed_size = GLOB.glove_embed_dim
-            self.embedding = nn.Embedding(vocab_size, embed_size, padding_idx=pad_idx)
-        
-        self.lstm = nn.LSTM(input_size=embed_size, hidden_size=hidden_size, num_layers=1,
-                            batch_first=True, bidirectional=True)
-        self.do = nn.Dropout(dropout)
-        self.fc = nn.Linear((2 * hidden_size), num_label_vals)
-        self.softmax = nn.Softmax()
-    
-    def forward(self, x):
-        embeds = self.embedding(x)
-        
-        lstm_out, (hidden_state_n, cell_state_n) = self.lstm(embeds)
-        #get last layer of output 
-        lstm_last = lstm_out[:, -1, :].squeeze(1)
-                
-        do_out = self.do(lstm_last)
-        label_probs = self.softmax(self.fc(do_out))
                 
         return label_probs
 

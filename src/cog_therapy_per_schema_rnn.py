@@ -203,7 +203,7 @@ def class_weights(schema, schema_label_vals):
         
 ###### Load data
 
-in_frame = prep.read_data(preprocessed=True)
+in_frame = prep.read_data(process_mode=None)
 
 ###### Preprocess data
 
