@@ -24,8 +24,10 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 import torchtext
 import cog_globals as GLOB
-from sklearn.feature_extraction.text import TfidfVectorizer
+from tensorflow.keras.preprocessing.text import Tokenizer
 from autocorrect import Speller
+import torch 
+from torch.nn.functional import normalize
 spell = Speller(lang='en')
 
 
@@ -135,72 +137,90 @@ class TokenDataset(Dataset):
         return self.get_text(idx), self.get_label(idx)
 
 class UtteranceDataset(Dataset):
-    def __init__(self, in_frame, max_len, vocab_size=2000, vocab=None, embeddings=None):
+    def __init__(self, in_frame, max_len, vocab_size=2000, vocab=None, tfidf_tokenizer=None, embeddings=None):
         '''
         Torch Dataset that embeds at the utterance level
         in_frame - a dataframe with columns defined above 
         max_len - number of tokens to crop/pad sentences to
         vocab_size - will reduce the number of words to this value
         vocab - either a torchtext.vocab.Vocab object, or None to build one
+        tfidf_tokenizer - either a keras Tokenizer, or None to build one
         embeddings - a torchtext.Vocab.Vector object or None for indices
         '''
         
+        #must have both or neither 
+        assert (vocab and tfidf_tokenizer) or (not vocab and not tfidf_tokenizer)
+        
+        
+        self.utterances = in_frame['tokens'].to_list()
         self.labels = in_frame[GLOB.SCHEMAS].to_numpy()
         self.vocab_size = vocab_size
         self.max_len = max_len
-        
-        utterance_list = in_frame.Utterance.to_list()
-        tfidf = TfidfVectorizer(max_features=vocab_size, use_idf=True)
-        features = tfidf.fit_transform(utterance_list).todense()
-        keys = tfidf.get_feature_names()
-        
+
         # Dictionaries
         self.vocab = vocab
         if vocab is None:
-            self.build_vocab()
+            self.build_vocab(embeddings)
         
         # Convert text to indices
         self.textual_ids = []
         self.convert_text()
-
-    def build_vocab(self): 
+        
+        # Set embed vec
+        if embeddings is not None:
+            #Get the relevent rows in GLoVE, and match their indices with
+            #the indices in our vocab https://github.com/pytorch/text/issues/1350
+            self.embed_vec = embeddings.get_vecs_by_tokens(self.vocab.get_itos())
+        
+        
+        #tfidf embeddings
+        self.tfidf_tokenizer = tfidf_tokenizer
+        if tfidf_tokenizer is None: 
+            # Get TFIDF tokenizer if it wasn't provided
+            tfidf_tokenizer = Tokenizer(oov_token = GLOB.UNK,
+                                  num_words=vocab_size)
+            tfidf_tokenizer.fit_on_sequences(self.textual_ids)
+            self.tfidf_tokenizer = tfidf_tokenizer
+        
+        #get tfidf embeddings 
+        tfidf = torch.Tensor(self.tfidf_tokenizer.sequences_to_matrix(self.textual_ids, mode='tfidf'))
+        
+        # Normalize embeddings
+        tfidf = normalize(tfidf, dim=1)
+        
+        # Make embeddings sum to 1
+        tfidf = tfidf / tfidf.sum(dim=1).unsqueeze(-1)
+        
+        # dot product with saved embeddings  
+        self.utterance_embeddings = torch.mm(tfidf, self.embed_vec)
+        
+    def build_vocab(self, embeddings): 
         '''
         Build torch dictionary. This is only called when split='train', as the 
         vocab is passed in to the __init__(...) function otherwise. 
         '''        
-
+        # Count the frequencies of all words in the training data 
+        token_list = []
+        for utterance in self.utterances:
+            token_list.extend(utterance)
+        
+        #note that torchtext.vocab.vocab works for chars. To work with strings, 
+        # add double nested list 
+        token_list_list = [[token] for token in token_list]
+            
+        self.vocab = torchtext.vocab.build_vocab_from_iterator(token_list_list, 
+                           max_tokens=self.vocab_size,
+                           specials=[GLOB.UNK, GLOB.END, GLOB.PAD])
+        self.vocab.set_default_index(self.vocab[GLOB.UNK])
+        
+            
     def convert_text(self):
         '''
         Convert each utterance to a list of indices
         '''
-
-    def get_text(self, idx):
-        '''
-        Return the utterance per the type of ebedding specified
-        Adds padding as required
-        '''
-        indices = self.textual_ids[idx]
-
-            #no embedding required, return just indices, but pad to correct length 
-            
-        indices.append(self.vocab[GLOB.END])
-        idx_len = len(indices)
-        
-        if idx_len > self.max_len:
-            #too long, trim
-            indices = indices[:self.max_len]
-
-        elif idx_len < self.max_len:
-            #too short, add padding
-            indices += [self.vocab[GLOB.PAD]] * (self.max_len - idx_len)
-                    
-        return torch.LongTensor(indices)
-        
-    def get_label(self, idx):
-        '''
-        Return labels as a long vector 
-        '''
-        return torch.FloatTensor(self.labels[idx])
+        for utterance in self.utterances:
+            idx_list = [self.vocab[token] for token in utterance]
+            self.textual_ids.append(idx_list)
 
     def __len__(self):
         '''
@@ -212,7 +232,7 @@ class UtteranceDataset(Dataset):
         '''
         Return the utterance, and label of the review specified by idx.
         '''
-        return self.get_text(idx), self.get_label(idx)
+        return self.utterance_embeddings[idx, :], torch.FloatTensor(self.labels[idx])
 
 def clean(row):
     '''

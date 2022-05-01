@@ -43,7 +43,7 @@ torch.manual_seed(GLOB.seed)
 #os.environ["PYTHONHASHSEED"] = str(GLOB.seed)
 
 ###### Load data
-in_frame = prep.read_data(preprocessed=False)
+in_frame = prep.read_data(preprocessed=True)
 
 ###### Preprocess data
 in_frame = prep.tokenize(in_frame)
@@ -63,23 +63,31 @@ train_set = prep.TokenDataset(train_frame,
                              vocab=None,
                              embeddings=embedding_glove)
 
-train_set_utterance = prep.UtteranceDataset(train_frame, 
-                                            max_len=GLOB.max_utt_length,
-                                            vocab_size=GLOB.max_vocab_size,
-                                            vocab=None,
-                                            embeddings=embedding_glove)
-
 val_set = prep.TokenDataset(val_frame, 
                              max_len=GLOB.max_utt_length,
                              vocab_size=2100,
                              vocab=train_set.vocab,
-                             embeddings=embedding_glove)
+                             embeddings=None)
 
 test_set = prep.TokenDataset(test_frame, 
                              max_len=GLOB.max_utt_length,
                              vocab_size=2100,
                              vocab=train_set.vocab,
-                             embeddings=embedding_glove)
+                             embeddings=None)
+
+train_set_utterance = prep.UtteranceDataset(train_frame, 
+                                            max_len=GLOB.max_utt_length,
+                                            vocab_size=GLOB.max_vocab_size,
+                                            vocab=None,
+                                            tfidf_tokenizer=None,
+                                            embeddings=embedding_glove)
+
+val_set_utterance = prep.UtteranceDataset(val_frame, 
+                                            max_len=GLOB.max_utt_length,
+                                            vocab_size=GLOB.max_vocab_size,
+                                            vocab=train_set_utterance.vocab,
+                                            tfidf_tokenizer=train_set_utterance.tfidf_tokenizer,
+                                            embeddings=embedding_glove)
 
 # Create dataloaders for our three datasets
 train_loader = prep.create_dataloader(train_set, shuffle=True)
