@@ -43,7 +43,7 @@ torch.manual_seed(GLOB.seed)
 #os.environ["PYTHONHASHSEED"] = str(GLOB.seed)
 
 ###### Load data
-in_frame = prep.read_data(process_mode=None)
+in_frame = prep.read_data(process_mode='utterance')
 
 ###### Preprocess data
 in_frame = prep.tokenize(in_frame)
