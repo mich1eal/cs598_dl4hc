@@ -184,7 +184,7 @@ Preliminary results include only the authors' Multi-label LSTM (see \nameref{mul
 
 \subsubsection{Multi-label RNN}
 \label{section:multi_rnn}
-Preliminary results for the Multi-label LSTM generally approximate the published values, with four out of nine schemas (Global self-evaluation, Health, Other people, and Other's views on self) falling within the authors' 95\% confidence bounds. The full list of results is presented in Table \ref{tab:multi_lstm} below. 
+Results for the Multi-label LSTM generally approximate the published values, with four out of nine schemas (Global self-evaluation, Health, Other people, and Other's views on self) falling within the authors' 95\% confidence bounds. The full list of results is presented in Table \ref{tab:multi_lstm} below. 
 
 \begin{table}[h] %% use b,t,h
 \centering
@@ -208,16 +208,17 @@ Other's views           & 0.50 [0.47, 0.54] & 0.49 \\
 \label{tab:multi_lstm}
 \end{table}
 
-Preliminary results show some variation between published data and reproduced data. These variations are attributed to a number of factors: 
+Results show some variation between published data and reproduced data. These variations are attributed to a number of factors: 
 \begin{itemize}
   \item A random partition of train/validation/test sets was used. \citeauthor{burger_2021} created sets of samples with equal distributions of each schema. This may explain the much lower scores we obtain for schemas that were sparsely represented in the source data, such as ``Power and Control" and ``Meta-cognition."
   \item Model architecture was implemented using Pytorch instead of TensorFlow. This includes the LSTM, loss function, optimizer, etc.
   \item Unique padding, unknown, and End of Sentence tokens were implemented. \citeauthor{burger_2021} only used padding tokens, with unknown tokens handled through TensorFlow's default functionality.
   \item The original Keras models used categorical cross entropy, which has no direct pyTorch equivalent. In its place we used CrossEntropyLoss. We also doubled the researchers' learning rate to 0.002.
 \end{itemize}
-Overall, the similarity between the published and preliminary reproduced results gives confidence that the general model architecture and training scheme is correct. With additional fine-tuning possible rectification of the differences listed above, a closer match is expected. 
 
 \subsubsection{Per-schema LSTMs}
+\subsection{Claim Results}
+
 
 \subsection{Further studies}
 \label{further_studies}
