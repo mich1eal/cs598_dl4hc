@@ -177,8 +177,13 @@ As models are finalized, code will be added to capture more accurate metrics abo
 \section{Results}
 Preliminary results include only the authors' Multi-label LSTM (see \nameref{multi_lstm} for model definition) was implemented. The authors' three remaining models will be implemented in conjunctions with the final submission of this paper, with additional work beyond the original paper's scope presented in \nameref{further_studies}. Once all models have been implemented, the claims involving multiple models (See \nameref{claims}) will be verified. Currently, only nominal values are reported, but implementation of boot-strapped confidence bounds is also planned.
 
-\subsection{Hypothesis 1: automatic schema prediction}
-\label{hyp1}
+\subsection{Model Results Comparison}
+\subsubsection{K-nearest Neighbors}
+\subsubsection{Support Vector Machine}
+\subsubsection{Multi-label LSTM}
+
+\subsubsection{Multi-label RNN}
+\label{section:multi_rnn}
 Preliminary results for the Multi-label LSTM generally approximate the published values, with four out of nine schemas (Global self-evaluation, Health, Other people, and Other's views on self) falling within the authors' 95\% confidence bounds. The full list of results is presented in Table \ref{tab:multi_lstm} below. 
 
 \begin{table}[h] %% use b,t,h
@@ -212,26 +217,89 @@ Preliminary results show some variation between published data and reproduced da
 \end{itemize}
 Overall, the similarity between the published and preliminary reproduced results gives confidence that the general model architecture and training scheme is correct. With additional fine-tuning possible rectification of the differences listed above, a closer match is expected. 
 
+\subsubsection{Per-schema LSTMs}
+
 \subsection{Further studies}
 \label{further_studies}
+The following additional studies were conducted to explore hypotheses outside of those of the original authors. 
+\subsubsection{Relaxed Preprocessing}
+\label{section:relaxed_preprocessing}
+RNNs combined with GLoVE word embeddings are able to capture a significant amount of information. \citeauthor{burger_2021} preprocessed their text inputs to a high degree, removing English stop words, punctuation, and contractions. We hypothesized that leaving these words in place would allow GLoVE and our multilabel RNN model access to more information, possibly making it more expressive. For example, we theorized that ``I can't" might carry some semantic difference to ``I cannot", and ``a problem" might have different meaning from ``the problem". 
 
-The following additional research is planned, to be further defined and implemented with the final submission of this paper: 
-\begin{enumerate}
-    \item The authors' Multi-label RNN, but without the removal of common words in preprocessing, or with multiple thought records chained together. In the original experiment, most participants gave a sequence of responses to each scenario, and we may find some advantage by chaining each participant's responses together.
-    \item The above experiment, but using a modern transformer based model such as BERT. 
-    \item Our draft model is highly sensitive to small changes in the learning rate. We plan to try dynamically adjusting the learning rate and to see if it gives better results. We will also vary the number of training epochs.
-    \item The authors' Multi-label RNN uses a loss function that expects one-hot encoded class labels. This is very different from the actual schema labels, where thought records can match multiple schemas on a 0-4 scale. We may try a loss function that's better suited to modeling these labels. If we treat both labels and predictions as probability distributions, we may be able to use KL divergence.
-\end{enumerate}
+We ran the model described in Section \ref{tab:multi_lstm} above, using our own preprocessing. We allowed for a slightly larger vocabulary (2100 words) to account for the inclusion of a larger vocabulary. Our preprocessing did not remove stop words, and it allowed common punctuation and contractions. 
+
+The results of this experiment are shown in Table \ref{tab:multi_lstm} below.
+
+\begin{table}[h] %% use b,t,h
+\centering
+% you can use l,r,c for left-aligned, right-aligned or centered columns
+\begin{tabular}{lcc}
+\toprule
+Schema                  &Baseline          &Relaxed \\ % use ampersands to separate columns and \\ for end of rows
+\midrule
+Attachment              & 0.63 & 0.60\\
+Competence              & 0.63 & 0.61\\
+Global self-eval        & 0.49 & 0.43\\
+Health                  & 0.35 & 0.30\\
+Power \& ctrl           & 0.06 & 0.22\\
+Meta-cognition          & 0.03 & 0.04\\
+Other people            & 0.11 & 0.13\\
+Hopelessness            & 0.44 & 0.35\\
+Other's views           & 0.49 & 0.51\\
+\bottomrule
+\end{tabular}
+\caption{Spearman correlation for baseline and relaxed preprocessing}
+\label{tab:relaxed_preprocessing}
+\end{table}
+
+Overall, relaxing preprocessing constraints made little difference. Four Schemas (Power \$ Control, Meta-cognition, Other people, and Other's views) made small improvements, while five worsened. 
+
+Stop words typically carry little meaning. We theorize that the benefit of including more information was tempered by the additional noise they introduced.
+
+\subsubsection{Scenario-level Preprocessing}
+We theorized multiple utterances from the same patient replying to the same prompt might contain information that would be useful when analyzed together.  
+
+We ran the model described in Section \ref{tab:multi_lstm} above. We used the same preprocessing described Section \ref{section:relaxed_preprocessing}. This time, we concatenated all utterances from each patient for each scenario. We took the mean of the schema scores for the same groups. To account for the combined utterances, we increased the maximum length our model considered from 25 to 45 tokens. 
+
+The results of this experiment are shown in Table \ref{tab:scenario_preprocessing} below.
+
+\begin{table}[h] %% use b,t,h
+\centering
+% you can use l,r,c for left-aligned, right-aligned or centered columns
+\begin{tabular}{lcc}
+\toprule
+Schema                  &Baseline          &Scenario \\ % use ampersands to separate columns and \\ for end of rows
+\midrule
+Attachment              & 0.63 & 0.50 \\
+Competence              & 0.63 & 0.71 \\
+Global self-eval        & 0.49 & 0.09 \\
+Health                  & 0.35 & 0.12 \\
+Power \& ctrl           & 0.06 & 0.08 \\
+Meta-cognition          & 0.03 & -0.13 \\
+Other people            & 0.11 & -0.11 \\
+Hopelessness            & 0.44 & -0.04 \\
+Other's views           & 0.49 & 0.38 \\
+\bottomrule
+\end{tabular}
+\caption{Spearman correlation for baseline and scenario utterances}
+\label{tab:scenario_preprocessing}
+\end{table}
+
+Using scenario-level utterances resulted in significant changes to most schemas. Only one Schema (Competence) showed better results, with all others worsening. We hypothesize that this is due to the significant reduction in training samples we encountered when we combined utterances. 
+
 \section{Discussion}
-TODO
 \subsection{What was easy}
-TODO
+Thanks to \citeauthor{burger_2021}, the paper's data and codebase were well-documented and easily accessible. Acquiring the material was straightforward. 
+
 \subsection{What was difficult}
-TODO
+We struggled to precisely replicate the authors results. We intentionally switched python packages, but we recieved more variance than expected. We also noted large chagnes in results based on hyperparameter changes, such as learning rate, sample, etc. 
+
 \subsection{Recommendations for reproducibility}
-TODO
+\citeauthor{burger_2021} sets an excellent example for reproducibility. We recommend other authors follow this example.
+
 \section{Communication with original authors}
-TODO
+Authors were contacted on 5/1/2021.
+
 \bibliographystyle{acl_natbib}
 \bibliography{acl2021}
 
