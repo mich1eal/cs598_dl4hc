@@ -36,8 +36,6 @@ from scipy.stats import mode
 # To compute model goodness-of-fit
 from scipy.stats import spearmanr
 
-import warnings
-
 # Local imports to help make scripts more modular.
 import cog_globals as GLOB
 import cog_prep_data as prep
@@ -63,9 +61,7 @@ torch.manual_seed(GLOB.seed)
 ### Distance metric for kNN
 
 def cosine_dist(x, y):
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        return distance.cosine(x,y)
+    return distance.cosine(x,y)
 
 ### kNN classification
 
@@ -278,7 +274,6 @@ elif embed_level == 'utterance':
                                      vocab=train_set.vocab,
                                      tfidf_tokenizer=train_set.tfidf_tokenizer,
                                      embeddings=embedding_glove)
-
 
 # Create dataloaders for our three datasets.
 

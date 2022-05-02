@@ -26,6 +26,7 @@ import torchtext
 import cog_globals as GLOB
 from tensorflow.keras.preprocessing.text import Tokenizer
 from autocorrect import Speller
+from itertools import compress 
 spell = Speller(lang='en')
 
 
@@ -204,7 +205,13 @@ class UtteranceDataset(Dataset):
         tfidf = tfidf / tfidf.sum(dim=1).unsqueeze(-1)
         
         # dot product with saved embeddings  
-        self.utterance_embeddings = torch.mm(tfidf, self.embed_vec)
+        utterance_embeddings = torch.mm(tfidf, self.embed_vec)
+        
+        # delete edge case where all 0s
+        drop_idx = utterance_embeddings.sum(dim=1) == 0
+        self.utterance_embeddings = utterance_embeddings[~drop_idx, :] 
+        self.labels = self.labels[~drop_idx, :] 
+        
         
     def build_vocab(self, embeddings): 
         '''
@@ -238,7 +245,7 @@ class UtteranceDataset(Dataset):
         '''
         Return the number of utterances in the dataset
         '''
-        return len(self.utterances)
+        return self.utterance_embeddings.shape[0]
     
     def __getitem__(self, idx):
         '''
