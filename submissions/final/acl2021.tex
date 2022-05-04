@@ -15,6 +15,7 @@
 
 \documentclass[11pt,a4paper]{article}
 \usepackage[hyperref]{acl2021}
+\usepackage{float}
 \usepackage{times}
 \usepackage{latexsym}
 \usepackage{usebib}
@@ -178,15 +179,67 @@ As models are finalized, code will be added to capture more accurate metrics abo
 Preliminary results include only the authors' Multi-label LSTM (see \nameref{multi_lstm} for model definition) was implemented. The authors' three remaining models will be implemented in conjunctions with the final submission of this paper, with additional work beyond the original paper's scope presented in \nameref{further_studies}. Once all models have been implemented, the claims involving multiple models (See \nameref{claims}) will be verified. Currently, only nominal values are reported, but implementation of boot-strapped confidence bounds is also planned.
 
 \subsection{Model Results Comparison}
-\subsubsection{K-nearest Neighbors}
+\subsubsection{k-Nearest Neighbors}
+
+\begin{table}[H]
+\centering
+% you can use l,r,c for left-aligned, right-aligned or centered columns
+\begin{tabular}{lcc}
+\toprule
+\multicolumn{3}{c}{\large kNN Classification} \\
+Schema                  &Published          &Reproduced \\ % use ampersands to separate columns and \\ for end of rows
+\midrule
+Attachment              & 0.55 [0.51, 0.60] & 0.59 \\
+Competence              & 0.69 [0.64, 0.73] & 0.64 \\
+Global self-eval        & 0.40 [0.33, 0.46] & 0.54 \\
+Health                  & 0.74 [0.65, 0.81] & 0.59 \\
+Power \& ctrl           & 0.11 [0.02, 0.18] & 0.18 \\
+Meta-cognition          & nan [0.00, 1.00] & nan \\
+Other people            & 0.28 [0.00, 1.00] & -0.01 \\
+Hopelessness            & 0.48 [0.44, 0.55] & 0.59 \\
+Other's views           & 0.45 [0.41, 0.51] & 0.42 \\
+\bottomrule
+\end{tabular}
+\caption{Spearman correlation [95\% confidence bounds] for k-nearest neighbors classifier}
+\label{tab:knn_classification}
+\end{table}
+
+\begin{table}[H]
+\centering
+% you can use l,r,c for left-aligned, right-aligned or centered columns
+\begin{tabular}{lcc}
+\toprule
+\multicolumn{3}{c}{\large kNN Regression} \\
+Schema                  &Published          &Reproduced \\ % use ampersands to separate columns and \\ for end of rows
+\midrule
+Attachment              & 0.63 [0.59, 0.65] & 0.62 \\
+Competence              & 0.66 [0.63, 0.69] & 0.68 \\
+Global self-eval        & 0.41 [0.36, 0.46] & 0.47 \\
+Health                  & 0.53 [0.44, 0.60] & 0.53 \\
+Power \& ctrl           & 0.23 [0.17, 0.27] & 0.23 \\
+Meta-cognition          & 0.10 [0.01, 0.20] & 0.02 \\
+Other people            & 0.24 [0.17, 0.31] & 0.14 \\
+Hopelessness            & 0.51 [0.47, 0.56] & 0.50 \\
+Other's views           & 0.46 [0.42, 0.50] & 0.45 \\
+\bottomrule
+\end{tabular}
+\caption{Spearman correlation [95\% confidence bounds] for k-nearest neighbors regressor}
+\label{tab:knn_regression}
+\end{table}
+
 \subsubsection{Support Vector Machine}
+
+(placeholder)
+
 \subsubsection{Multi-label LSTM}
+
+(placeholder)
 
 \subsubsection{Multi-label RNN}
 \label{section:multi_rnn}
 Results for the Multi-label LSTM generally approximate the published values, with four out of nine schemas (Global self-evaluation, Health, Other people, and Other's views on self) falling within the authors' 95\% confidence bounds. The full list of results is presented in Table \ref{tab:multi_lstm} below. 
 
-\begin{table}[h] %% use b,t,h
+\begin{table}[H]
 \centering
 % you can use l,r,c for left-aligned, right-aligned or centered columns
 \begin{tabular}{lcc}
@@ -231,7 +284,7 @@ We ran the model described in Section \ref{tab:multi_lstm} above, using our own 
 
 The results of this experiment are shown in Table \ref{tab:multi_lstm} below.
 
-\begin{table}[h] %% use b,t,h
+\begin{table}[H]
 \centering
 % you can use l,r,c for left-aligned, right-aligned or centered columns
 \begin{tabular}{lcc}
@@ -264,7 +317,7 @@ We ran the model described in Section \ref{tab:multi_lstm} above. We used the sa
 
 The results of this experiment are shown in Table \ref{tab:scenario_preprocessing} below.
 
-\begin{table}[h] %% use b,t,h
+\begin{table}[H]
 \centering
 % you can use l,r,c for left-aligned, right-aligned or centered columns
 \begin{tabular}{lcc}
