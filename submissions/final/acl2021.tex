@@ -260,7 +260,7 @@ Stop words typically carry little meaning. We theorize that the benefit of inclu
 \subsubsection{Scenario-level Preprocessing}
 We theorized multiple utterances from the same patient replying to the same prompt might contain information that would be useful when analyzed together.  
 
-We ran the model described in Section \ref{tab:multi_lstm} above. We used the same preprocessing described Section \ref{section:relaxed_preprocessing}. This time, we concatenated all utterances from each patient for each scenario. We took the mean of the schema scores for the same groups. To account for the combined utterances, we increased the maximum length our model considered from 25 to 45 tokens. 
+We ran the model described in Section \ref{tab:multi_lstm} above. We used the same preprocessing described in Section \ref{section:relaxed_preprocessing}. This time, we concatenated all utterances from each patient for each scenario. We took the mean of the schema scores for the same groups. To account for the combined utterances, we increased the maximum length our model considered from 25 to 45 tokens. 
 
 The results of this experiment are shown in Table \ref{tab:scenario_preprocessing} below.
 
@@ -286,13 +286,14 @@ Other's views           & 0.49 & 0.38 \\
 \label{tab:scenario_preprocessing}
 \end{table}
 
-Using scenario-level utterances resulted in significant changes to most schemas. Only one Schema (Competence) showed better results, with all others worsening. We hypothesize that this is due to the significant reduction in training samples we encountered when we combined utterances. 
+Using scenario-level utterances resulted in significant changes to most schemas. Only one Schema (Competence) showed better results, with all others worsening. We hypothesize that this is due to the significant reduction in training samples we encountered when we combined utterances. These results are also consistent with the original authors' finding that utterance/schema correlation did not improve when considering later utterances on the same scenarios.
 
 \section{Discussion}
 \subsection{What was easy}
 Thanks to \citeauthor{burger_2021}, the paper's data and codebase were well-documented and easily accessible. Acquiring the material was straightforward. 
 
 \subsection{What was difficult}
+\label{section:what_was_difficult}
 We struggled to precisely replicate the authors results. We intentionally switched python packages, but we received more variance than expected. We also noted large changes in results based on hyperparameter changes, such as learning rate, sample, etc. 
 
 Despite the paper's transparency with code and data, it proved difficult to rerun the original Jupyter notebook and replicate the paper's results. On a Windows machine, the notebook's Python code had multiple indentation errors. Attempts to fix the errors allowed us to train the multi-label RNNs, but the models made predictions that had nearly zero correlation to ground truth.
@@ -303,7 +304,9 @@ The authors' saved-to-disk models worked as expected, however.
 \citeauthor{burger_2021} sets an excellent example for reproducibility. We recommend other authors follow this example.
 
 \section{Communication with original authors}
-The corresponding author was contacted on 5/1/2021.
+The corresponding author was contacted on 5/1/2021. We offered to share our project results upon completion, and we detailed the issues we encountered rerunning the paper's Jupyter notebook (see \ref{section:what_was_difficult}). The author's response was almost immediate, requesting information about the operating system we used. She noted that one instance of trouble in the authors' original reproduction efforts may have been related to differences in machine environments.
+
+Correspondence will be ongoing.
 
 \bibliographystyle{acl_natbib}
 \bibliography{acl2021}
