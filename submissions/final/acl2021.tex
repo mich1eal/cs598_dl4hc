@@ -176,10 +176,14 @@ Based on partial reruns of the paper's original Jupyter notebook, each additiona
 As models are finalized, code will be added to capture more accurate metrics about runtime to be documented in the final report. 
 
 \section{Results}
-Preliminary results include only the authors' Multi-label LSTM (see \nameref{multi_lstm} for model definition) was implemented. The authors' three remaining models will be implemented in conjunctions with the final submission of this paper, with additional work beyond the original paper's scope presented in \nameref{further_studies}. Once all models have been implemented, the claims involving multiple models (See \nameref{claims}) will be verified. Currently, only nominal values are reported, but implementation of boot-strapped confidence bounds is also planned.
+The paper's original model types were all reimplemented in pyTorch. Following are the models' point estimates of Spearman correlation coefficients for predicted schemas vs. ground-truth values. We compare them to the original paper's 95\% confidence intervals.
+
+Additional work beyond the original paper's scope is presented in \nameref{further_studies}.
 
 \subsection{Model Results Comparison}
 \subsubsection{k-Nearest Neighbors}
+
+Our kNN models are well-behaved, with almost all r values falling within paper's the 95\% confidence bounds. Our classifier originally returned much lower values until we discovered that two utterances with only unknown tokens were being classified as the nearest neighbors of all other utterances, due to the model's cosine distance measure. Results improved dramatically after we removed those two utterances.
 
 \begin{table}[H]
 \centering
