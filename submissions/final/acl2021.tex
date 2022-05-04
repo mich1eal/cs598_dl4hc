@@ -233,13 +233,7 @@ Other's views           & 0.46 [0.42, 0.50] & 0.45 \\
 
 \subsubsection{Support Vector Machine}
 
-(placeholder)
-
 \subsubsection{Multi-label LSTM}
-
-(placeholder)
-
-\subsubsection{Multi-label RNN}
 \label{section:multi_rnn}
 Results for the Multi-label LSTM generally approximate the published values, with four out of nine schemas (Global self-evaluation, Health, Other people, and Other's views on self) falling within the authors' 95\% confidence bounds. The full list of results is presented in Table \ref{tab:multi_lstm} below. 
 
@@ -284,7 +278,7 @@ The following additional studies were conducted to explore hypotheses outside of
 \label{section:relaxed_preprocessing}
 RNNs combined with GLoVE word embeddings are able to capture a significant amount of information. \citeauthor{burger_2021} preprocessed their text inputs to a high degree, removing English stop words, punctuation, and contractions. We hypothesized that leaving these words in place would allow GLoVE and our multilabel RNN model access to more information, possibly making it more expressive. For example, we theorized that ``I can't" might carry some semantic difference to ``I cannot", and ``a problem" might have different meaning from ``the problem". 
 
-We ran the model described in Section \ref{tab:multi_lstm} above, using our own preprocessing. We allowed for a slightly larger vocabulary (2100 words) to account for the inclusion of a larger vocabulary. Our preprocessing did not remove stop words, and it allowed common punctuation and contractions. 
+We ran the model described in Section \ref{tab:multi_rnn} above, using our own preprocessing. We allowed for a slightly larger vocabulary (2100 words) to account for the inclusion of a larger vocabulary. Our preprocessing did not remove stop words, and it allowed common punctuation and contractions. 
 
 The results of this experiment are shown in Table \ref{tab:multi_lstm} below.
 
