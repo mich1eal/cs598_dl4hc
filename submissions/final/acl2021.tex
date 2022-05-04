@@ -293,13 +293,17 @@ Using scenario-level utterances resulted in significant changes to most schemas.
 Thanks to \citeauthor{burger_2021}, the paper's data and codebase were well-documented and easily accessible. Acquiring the material was straightforward. 
 
 \subsection{What was difficult}
-We struggled to precisely replicate the authors results. We intentionally switched python packages, but we recieved more variance than expected. We also noted large chagnes in results based on hyperparameter changes, such as learning rate, sample, etc. 
+We struggled to precisely replicate the authors results. We intentionally switched python packages, but we received more variance than expected. We also noted large changes in results based on hyperparameter changes, such as learning rate, sample, etc. 
+
+Despite the paper's transparency with code and data, it proved difficult to rerun the original Jupyter notebook and replicate the paper's results. On a Windows machine, the notebook's Python code had multiple indentation errors. Attempts to fix the errors allowed us to train the multi-label RNNs, but the models made predictions that had nearly zero correlation to ground truth.
+
+The authors' saved-to-disk models worked as expected, however.
 
 \subsection{Recommendations for reproducibility}
 \citeauthor{burger_2021} sets an excellent example for reproducibility. We recommend other authors follow this example.
 
 \section{Communication with original authors}
-Authors were contacted on 5/1/2021.
+The corresponding author was contacted on 5/1/2021.
 
 \bibliographystyle{acl_natbib}
 \bibliography{acl2021}
