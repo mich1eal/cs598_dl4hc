@@ -5,13 +5,20 @@ This repository contains the code and documentation of our CS 598 final project.
 The paper is available for download on the [PLOS ONE](https://app.dimensions.ai/details/publication/pub.1141955424]) website. 
 
 ## Repository Structure
-├── data - a subset of the paper's dataset (see below for access instructions)  
+├── data - part of the paper's dataset, plus a custom set(see below for access instructions)  
 ├── papers - papers under consideration for this project  
 ├── reference_material - guidance documents  
 ├── src - all code used in this project  
-│   └── cog_therapy.py  
+│   ├── cog_globals.py - globals shared by all scripts
+│   ├── cog_prep_data.py - data prep shared by all scripts
+│   ├── cog_preprocess.py - custom preprocessing
+│   ├── knn.py - model
+│   ├── multilabel_rnn_baseline.py - model
+│   ├── multilabel_rnn_custom_preprocess.py - model
+│   ├── multilabel_rnn_scenario.py - model
+│   └── per_schema_rnn.py - model
 ├── submissions - final documents submitted to the class  
-├── requirements.txt - pip requirements file  
+└── requirements.txt - pip requirements file  
 
 ## Data Access 
 The authors' full dataset and code is available for download on the [4TU.ResearchData](https://data.4tu.nl/articles/dataset/Dataset_and_Analyses_for_Extracting_Schemas_from_Thought_Records_using_Natural_Language_Processing/16685347) repository.
@@ -28,7 +35,9 @@ Data can be downloaded directly from this website as a zip file. To verify using
 1. (Optional) Download [Spyder IDE](https://docs.spyder-ide.org/current/installation.html) and [configure it to run with the venv](https://medium.com/analytics-vidhya/5-steps-setup-python-virtual-environment-in-spyder-ide-da151bafa337) 
 
 ## Project Execution
-Using a python terminal, run ```python cog_therapy.py```
+Custom-preprocessed data is already saved in the ```data``` directory. If it is desired to recreate this data, run ```cog_preprocess.py```
+
+To run any of the models, run ```python <filename>``` for any of the scripts labeled model above. Model results are outputted to the terminal. 
 
 ## Project Dependencies 
 This project relies on the following python modules (pip format):  
