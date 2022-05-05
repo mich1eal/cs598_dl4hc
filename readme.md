@@ -35,7 +35,7 @@ Data can be downloaded directly from this website as a zip file. To verify using
 1. (Optional) Download [Spyder IDE](https://docs.spyder-ide.org/current/installation.html) and [configure it to run with the venv](https://medium.com/analytics-vidhya/5-steps-setup-python-virtual-environment-in-spyder-ide-da151bafa337) 
 
 ## Project Execution
-Custom-preprocessed data is already saved in the ```data``` directory. If it is desired to recreate this data, run ```cog_preprocess.py```
+Custom-preprocessed data is already saved in the ```data``` directory. If it is desired to recreate this data, run ```python cog_preprocess.py```
 
 To run any of the models, run ```python <filename>``` for any of the scripts labeled model above. Model results are outputted to the terminal. 
 
