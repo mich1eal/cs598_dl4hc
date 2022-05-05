@@ -100,8 +100,11 @@ We also measure model performance using Spearman's rank-order correlation betwee
 Because of our similar design, we expect to obtain similar results to \citeauthor{burger_2021}. In particular, we will verify the following three claims:
 \begin{enumerate}
     \item Per-schema LSTMs outperform other tested models on all schemas except ``Power and Control" and ``Meta-Cognition".
+    \label{claim1}
     \item Each regression model outperforms its corresponding classifier on the ``Power and Control" schema.
+    \label{claim2}
     \item Each classifier outperforms the corresponding regression model on the ``Health" schema.
+    \label{claim3}
 \end{enumerate}
 
 \section{Methodology}
@@ -194,6 +197,7 @@ The paper's original model types were all reimplemented in pyTorch. Following ar
 Additional work beyond the original paper's scope is presented in \nameref{further_studies}.
 
 \subsection{Model Results Comparison}
+\label{section_model_results}
 \subsubsection{k-Nearest Neighbors}
 
 Our kNN models are well-behaved, with almost all r values falling within paper's the 95\% confidence bounds. Our classifier originally returned much lower values until we discovered that two utterances with only unknown tokens were being classified as the nearest neighbors of all other utterances, due to the model's cosine distance measure. Results improved dramatically after we removed those two utterances.
@@ -361,6 +365,22 @@ We tried several measures to change this behavior, including:
 Unfortunately, none of these approaches improved results.
 
 \subsection{Claim Results}
+Each subsection in Section \ref{section_model_results} highlights discrepancies discovered between published and reproduced models. Each subsection also provides hypothesis as to why these discrepancies occur. When combined, the discrepancies mean that we were unable to verify the claims of the original paper. 
+
+
+
+Claim \ref{claim1}: Due to 
+
+Claim \ref{claim2}
+
+Claim \ref{claim3}
+
+
+\begin{enumerate}
+    \item Per-schema LSTMs outperform other tested models on all schemas except ``Power and Control" and ``Meta-Cognition".
+    \item Each regression model outperforms its corresponding classifier on the ``Power and Control" schema.
+    \item Each classifier outperforms the corresponding regression model on the ``Health" schema.
+\end{enumerate}
 
 
 \subsection{Further studies}
