@@ -246,6 +246,8 @@ Other's views           & 0.46 [0.42, 0.50] & 0.45 \\
 
 \subsubsection{Support Vector Machine}
 
+SVMs are also well-behaved, with most r values either within or very close to the original 95\% confidence bounds.
+
 \begin{table}[H]
 \centering
 \begin{tabular}{lcc}
@@ -268,6 +270,27 @@ Other's views           & 0.48 [0.43, 0.53] & 0.43 \\
 \label{tab:svm_classification}
 \end{table}
 
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\multicolumn{3}{c}{\large SVR (Regression)} \\
+Schema                  &Published          &Reproduced \\
+\midrule
+Attachment              & 0.68 [0.65, 0.70] & 0.68 \\
+Competence              & 0.64 [0.61, 0.67] & 0.67 \\
+Global self-eval        & 0.49 [0.45, 0.52] & 0.48 \\
+Health                  & 0.35 [0.31, 0.40] & 0.38 \\
+Power \& ctrl           & 0.31 [0.26, 0.35] & 0.22 \\
+Meta-cognition          & 0.11 [0.06, 0.16] & 0.07 \\
+Other people            & 0.19 [0.14, 0.24] & 0.13 \\
+Hopelessness            & 0.54 [0.51, 0.57] & 0.48 \\
+Other's views           & 0.52 [0.48, 0.55] & 0.49 \\
+\bottomrule
+\end{tabular}
+\caption{Spearman correlation [95\% confidence bounds] for support vector machine regressor}
+\label{tab:svm_Regression}
+\end{table}
 
 \subsubsection{Multi-label LSTM}
 \label{section:multi_rnn}
@@ -304,7 +327,7 @@ Results show some variation between published data and reproduced data. These va
 \end{itemize}
 
 \subsubsection{Per-schema LSTMs}
-
+\label{section:per_schema_rnn}
 These models predicted the rating of each utterance against each separate schema, on the 0-3 rating scale. Our models predicted the majority class for all utterances, i.e. that the utterances were not related to any schema. This is why it scores "best" on rarely-occurring schemas like Power \& Control.
 
 \begin{table}[H]
@@ -420,11 +443,15 @@ Despite the paper's transparency with code and data, it proved difficult to reru
 
 The authors' saved-to-disk models worked as expected, however.
 
+Finally, our per-schema RNNs only behaved as majority-class classifiers. See \ref{section:per_schema_rnn} for details.
+
 \subsection{Recommendations for reproducibility}
 \citeauthor{burger_2021} sets an excellent example for reproducibility. We recommend other authors follow this example.
 
 \section{Communication with original authors}
-The corresponding author was contacted on 5/1/2021. We offered to share our project results upon completion, and we detailed the issues we encountered rerunning the paper's Jupyter notebook (see \ref{section:what_was_difficult}). The author's response was almost immediate, requesting information about the operating system we used. She noted that one instance of trouble in the authors' original reproduction efforts may have been related to differences in machine environments.
+The corresponding author was contacted on 5/1/2021. We offered to share our project results upon completion, and we detailed the issues we encountered rerunning the paper's Jupyter notebook (see \ref{section:what_was_difficult}).
+
+The author's response was almost immediate, requesting information about the operating system we used. She noted that one instance of trouble in the authors' original reproduction efforts may have been related to differences in machine environments.
 
 Correspondence will be ongoing.
 
