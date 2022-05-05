@@ -5,6 +5,7 @@ This repository contains the code and documentation of our CS 598 final project.
 The paper is available for download on the [PLOS ONE](https://app.dimensions.ai/details/publication/pub.1141955424]) website. 
 
 ## Repository Structure
+```bash
 ├── data - part of the paper's dataset, plus a custom set(see below for access instructions)  
 ├── papers - papers under consideration for this project  
 ├── reference_material - guidance documents  
@@ -19,6 +20,7 @@ The paper is available for download on the [PLOS ONE](https://app.dimensions.ai/
 │   └── per_schema_rnn.py - model
 ├── submissions - final documents submitted to the class  
 └── requirements.txt - pip requirements file  
+```
 
 ## Data Access 
 The authors' full dataset and code is available for download on the [4TU.ResearchData](https://data.4tu.nl/articles/dataset/Dataset_and_Analyses_for_Extracting_Schemas_from_Thought_Records_using_Natural_Language_Processing/16685347) repository.
