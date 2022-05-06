@@ -210,15 +210,15 @@ Our kNN models are well-behaved, with almost all r values falling within paper's
 \multicolumn{3}{c}{\large kNN Classification} \\
 Schema                  &Published          &Reproduced \\ % use ampersands to separate columns and \\ for end of rows
 \midrule
-Attachment              & 0.55 [0.51, 0.60] & 0.59 \\
-Competence              & 0.69 [0.64, 0.73] & 0.64 \\
-Global self-eval        & 0.40 [0.33, 0.46] & 0.54 \\
-Health                  & 0.74 [0.65, 0.81] & 0.59 \\
-Power \& ctrl           & 0.11 [0.02, 0.18] & 0.18 \\
-Meta-cognition          & nan [0.00, 1.00] & nan \\
+Attachment              & 0.55 [0.51, 0.60] & 0.59  \\
+Competence              & 0.69 [0.64, 0.73] & 0.64  \\
+Global self-eval        & 0.40 [0.33, 0.46] & 0.54  \\
+Health                  & 0.74 [0.65, 0.81] & 0.59  \\
+Power \& ctrl           & 0.11 [0.02, 0.18] & 0.18  \\
+Meta-cognition          & nan [0.00, 1.00]  & nan   \\
 Other people            & 0.28 [0.00, 1.00] & -0.01 \\
-Hopelessness            & 0.48 [0.44, 0.55] & 0.59 \\
-Other's views           & 0.45 [0.41, 0.51] & 0.42 \\
+Hopelessness            & 0.48 [0.44, 0.55] & 0.59  \\
+Other's views           & 0.45 [0.41, 0.51] & 0.42  \\
 \bottomrule
 \end{tabular}
 \caption{Spearman correlation [95\% confidence bounds] for k-nearest neighbors classifier}
@@ -263,9 +263,9 @@ Attachment              & 0.65 [0.61, 0.68] & 0.66 \\
 Competence              & 0.68 [0.65, 0.72] & 0.68 \\
 Global self-eval        & 0.36 [0.31, 0.40] & 0.54 \\
 Health                  & 0.73 [0.65, 0.81] & 0.63 \\
-Power \& ctrl           & nan [0.00, 1.00] & 0.10 \\
-Meta-cognition          & nan [0.00, 1.00] & nan \\
-Other people            & nan [0.00, 1.00] & -0.01 \\
+Power \& ctrl           & nan [0.00, 1.00]  & 0.10 \\
+Meta-cognition          & nan [0.00, 1.00]  & nan  \\
+Other people            & nan [0.00, 1.00]  & -0.01 \\
 Hopelessness            & 0.49 [0.43, 0.53] & 0.58 \\
 Other's views           & 0.48 [0.43, 0.53] & 0.43 \\
 \bottomrule
@@ -340,15 +340,15 @@ These models predicted the rating of each utterance against each separate schema
 \toprule
 Schema                  &Published          &Reproduced \\
 \midrule
-Attachment              & 0.73 [0.70, 0.76] & 0.52 \\
-Competence              & 0.76 [0.72, 0.79] & 0.56 \\
-Global self-eval        & 0.58 [0.54, 0.63] & 0.54 \\
-Health                  & 0.75 [0.65, 0.82] & 0.69 \\
-Power \& ctrl           & 0.28 [0.20, 0.35] & 0.65 \\
-Meta-cognition          & -0.01 [0.00, -0.01] & 0.73 \\
-Other people            & 0.22 [0.07, 0.33] & 0.72 \\
-Hopelessness            & 0.63 [0.56, 0.68] & 0.65 \\
-Other's views           & 0.58 [0.52, 0.63] & 0.64 \\
+Attachment              & 0.73 [0.70, 0.76]  & 0.52 \\
+Competence              & 0.76 [0.72, 0.79]  & 0.56 \\
+Global self-eval        & 0.58 [0.54, 0.63]  & 0.54 \\
+Health                  & 0.75 [0.65, 0.82]  & 0.69 \\
+Power \& ctrl           & 0.28 [0.20, 0.35]  & 0.65 \\
+Meta-cognition          & -0.01 [0.00, -0.01]& 0.73 \\
+Other people            & 0.22 [0.07, 0.33]  & 0.72 \\
+Hopelessness            & 0.63 [0.56, 0.68]  & 0.65 \\
+Other's views           & 0.58 [0.52, 0.63]  & 0.64 \\
 \bottomrule
 \end{tabular}
 \caption{Spearman correlation [95\% confidence bounds] for per-schema LSTM model}
@@ -365,23 +365,13 @@ We tried several measures to change this behavior, including:
 Unfortunately, none of these approaches improved results.
 
 \subsection{Claim Results}
-Each subsection in Section \ref{section_model_results} highlights discrepancies discovered between published and reproduced models. Each subsection also provides hypothesis as to why these discrepancies occur. When combined, the discrepancies mean that we were unable to verify the claims of the original paper. 
+Each subsection in Section \ref{section_model_results} highlights discrepancies discovered between published and reproduced models. Each subsection also provides hypothesis as to why these discrepancies occur. When combined, the discrepancies mean that many of the original paper's claims could not be verified. 
 
+Claim \ref{claim1} (per-schema LSTMs): Due to issues described in Section \label{section:per_schema_rnn}, our per-schema LSTM model varied the most from the original authors. In general, our model performed poorly, and did not receive the highest score for any Schema.  
 
+Claim \ref{claim2} (regression models for Power and Control): Our findings confirm this result. 
 
-Claim \ref{claim1}: Due to 
-
-Claim \ref{claim2}
-
-Claim \ref{claim3}
-
-
-\begin{enumerate}
-    \item Per-schema LSTMs outperform other tested models on all schemas except ``Power and Control" and ``Meta-Cognition".
-    \item Each regression model outperforms its corresponding classifier on the ``Power and Control" schema.
-    \item Each classifier outperforms the corresponding regression model on the ``Health" schema.
-\end{enumerate}
-
+Claim \ref{claim3} (classifiers for Health): Our findings confirm this result. 
 
 \subsection{Further studies}
 \label{further_studies}
